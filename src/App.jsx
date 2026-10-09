@@ -5,10 +5,10 @@ import KanbanBoard from './components/KanbanBoard';
 import HistoryLog from './components/HistoryLog';
 import CustomerDashboard from './components/CustomerDashboard';
 import ClientManagement from './components/ClientManagement';
-import { Truck, Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X } from 'lucide-react';
+import RequestsManagement from './components/RequestsManagement'; // NEW Import
+import { Truck, Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox } from 'lucide-react';
 
 export default function App() {
-  // FIXED: Safeguard against the string "null" bug
   const [userRole, setUserRole] = useState(() => {
     const role = localStorage.getItem('wh_role');
     return (role && role !== 'null') ? role : null;
@@ -33,6 +33,12 @@ export default function App() {
     const saved = localStorage.getItem('wh_items');
     return saved ? JSON.parse(saved) : INITIAL_ITEMS;
   });
+
+  // NEW: State for unauthenticated customer requests
+  const [requests, setRequests] = useState(() => {
+    const saved = localStorage.getItem('wh_requests');
+    return saved ? JSON.parse(saved) : [];
+  });
   
   const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null });
   const [editingItem, setEditingItem] = useState(null);
@@ -46,6 +52,7 @@ export default function App() {
 
   useEffect(() => { localStorage.setItem('wh_usersDB', JSON.stringify(usersDB)); }, [usersDB]);
   useEffect(() => { localStorage.setItem('wh_items', JSON.stringify(items)); }, [items]);
+  useEffect(() => { localStorage.setItem('wh_requests', JSON.stringify(requests)); }, [requests]); // Save requests
   
   useEffect(() => {
     if (userRole && userRole !== 'null') localStorage.setItem('wh_role', userRole); 
@@ -67,7 +74,6 @@ export default function App() {
     return user && user.clientName ? user.clientName : 'Unknown Client';
   };
 
-  // FIXED: Bulletproof logout that completely wipes memory and reloads the app
   const handleLogout = () => { 
     localStorage.removeItem('wh_role');
     localStorage.removeItem('wh_user');
@@ -103,9 +109,9 @@ export default function App() {
     };
   };
 
-  // Safegaurd to block rendering if no valid user exists
   if (!userRole || userRole === 'null') {
-    return <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} />;
+    // Pass addRequest down to Auth component
+    return <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} addRequest={(req) => setRequests([...requests, req])} />;
   }
 
   const handleReceiveItem = (e) => {
@@ -268,17 +274,27 @@ export default function App() {
                 {isAdmin && (
                   <button onClick={() => setActiveTab('clients')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'clients' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}><Users size={16} /> Client Directory</button>
                 )}
+                
+                {/* NEW: Incoming Requests Tab */}
+                <button onClick={() => setActiveTab('requests')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'requests' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}>
+                  <Inbox size={16} /> Incoming Requests 
+                  {requests.length > 0 && <span className="ml-1.5 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{requests.length}</span>}
+                </button>
+
               </div>
             </div>
           )}
         </div>
 
+        {/* Dynamic Submodule Rendering */}
         {!isInternal ? (
           <CustomerDashboard items={items} currentUser={currentUser} updateItemData={updateItemData} />
         ) : activeTab === 'history' ? (
           <HistoryLog items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} getClientName={getClientName} />
         ) : activeTab === 'clients' && isAdmin ? (
           <ClientManagement usersDB={usersDB} setUsersDB={setUsersDB} items={items} setItems={setItems} isAdmin={isAdmin} />
+        ) : activeTab === 'requests' ? (
+          <RequestsManagement requests={requests} setRequests={setRequests} items={items} setItems={setItems} usersDB={usersDB} setUsersDB={setUsersDB} />
         ) : (
           <KanbanBoard items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} startEdit={startEdit} deleteItem={deleteItem} getClientName={getClientName} updateItemData={updateItemData} />
         )}
