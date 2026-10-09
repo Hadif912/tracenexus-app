@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Package, History, Phone, Edit2, Trash2, Save, X } from 'lucide-react';
+import { Package, History, Phone, Edit2, Trash2, Save, X, Search } from 'lucide-react';
 
 export default function HistoryLog({ items, setItems, isAdmin, isInternal, getClientName, supabase }) {
   const [selectedHistoryItemId, setSelectedHistoryItemId] = useState(items.length > 0 ? items[0].id : null);
   const [editingHistory, setEditingHistory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(''); // NEW: Search state
 
   const selectedItemForHistory = items.find(i => i.id === selectedHistoryItemId);
 
@@ -32,18 +33,39 @@ export default function HistoryLog({ items, setItems, isAdmin, isInternal, getCl
     setEditingHistory(null);
   };
 
+  // NEW: Filter items array based on Search
+  const filteredItems = items.filter(item => 
+    item.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.owner && item.owner.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
     <div className="bg-slate-100 rounded-2xl shadow-sm border border-slate-300 overflow-hidden flex flex-col">
       <div className="bg-slate-200 border-b border-slate-300 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-slate-100 shadow-sm border border-slate-300 flex items-center justify-center">
-            <Package className="text-slate-700" size={16}/>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 shadow-sm border border-slate-300 flex items-center justify-center">
+              <Package className="text-slate-700" size={16}/>
+            </div>
+            <h3 className="font-extrabold text-slate-800 m-0 text-base">Select Record to Inspect</h3>
           </div>
-          <h3 className="font-extrabold text-slate-800 m-0 text-base">Select Record to Inspect</h3>
+          
+          {/* SEARCH BAR */}
+          <div className="relative w-full md:w-72">
+            <Search size={16} className="absolute left-3 top-2.5 text-slate-500" />
+            <input 
+              type="text" 
+              placeholder="Search ID, Name, or Phone..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm outline-none"
+            />
+          </div>
         </div>
         
         <div className="flex overflow-x-auto gap-4 pb-3 custom-scrollbar">
-          {items.map(item => (
+          {filteredItems.length > 0 ? filteredItems.map(item => (
             <button
               key={item.id}
               onClick={() => setSelectedHistoryItemId(item.id)}
@@ -53,7 +75,9 @@ export default function HistoryLog({ items, setItems, isAdmin, isInternal, getCl
               <span className="text-sm font-bold text-slate-800 truncate w-full mb-1">{item.name}</span>
               <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1"><Phone size={10}/> {getClientName(item.owner)}</span>
             </button>
-          ))}
+          )) : (
+            <p className="text-sm text-slate-500 italic py-2">No records found matching your search.</p>
+          )}
         </div>
       </div>
 

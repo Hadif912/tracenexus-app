@@ -6,7 +6,8 @@ import HistoryLog from './components/HistoryLog';
 import CustomerDashboard from './components/CustomerDashboard';
 import ClientManagement from './components/ClientManagement';
 import RequestsManagement from './components/RequestsManagement';
-import { Truck, Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw } from 'lucide-react';
+import EngineerManagement from './components/EngineerManagement';
+import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench } from 'lucide-react';
 
 export default function App() {
   const [userRole, setUserRole] = useState(() => {
@@ -19,13 +20,12 @@ export default function App() {
   });
   
   const [activeTab, setActiveTab] = useState('board'); 
-  
   const [usersDB, setUsersDB] = useState([]);
   const [items, setItems] = useState([]);
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null });
+  const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' });
   const [editingItem, setEditingItem] = useState(null);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const dropdownRef = useRef(null); 
@@ -33,6 +33,7 @@ export default function App() {
   const isInternal = userRole === 'admin' || userRole === 'staff';
   const isAdmin = userRole === 'admin';
   const customerList = usersDB.filter(u => u.role === 'customer');
+  const engineersList = usersDB.filter(u => u.role === 'staff');
 
   const loadData = async () => {
     setIsLoading(true);
@@ -89,7 +90,6 @@ export default function App() {
     setItems(items.map(item => item.id === itemId ? { ...item, ...updates } : item));
   };
 
-  // FIXED: Keeps images Uncompressed and Full Quality
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -115,29 +115,27 @@ export default function App() {
       const newUser = { username: formData.clientPhone, password: 'Abc@123', role: 'customer', client_name: formData.clientName || 'Unknown' };
       await supabase.from('users').insert([newUser]);
       setUsersDB([...usersDB, newUser]);
-      alert(`System Note: New client account created for ${formData.clientPhone}`);
     } else if (formData.clientName && existingCustomer.client_name !== formData.clientName) {
       await supabase.from('users').update({ client_name: formData.clientName }).eq('username', formData.clientPhone);
       setUsersDB(usersDB.map(u => u.username === formData.clientPhone ? { ...u, client_name: formData.clientName } : u));
     }
 
     if (editingItem) {
-      const updates = { name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone, photo: formData.photo || editingItem.photo };
+      const updates = { name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone, photo: formData.photo || editingItem.photo, assigned_engineer: formData.assigned_engineer };
       await supabase.from('items').update(updates).eq('id', editingItem.id);
       setItems(items.map(i => i.id === editingItem.id ? { ...i, ...updates } : i));
       setEditingItem(null);
     } else {
       const newItemId = `REP-${Math.floor(1000 + Math.random() * 9000)}`;
       const newItem = { 
-        id: newItemId, name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone, photo: formData.photo,
+        id: newItemId, name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone, photo: formData.photo, assigned_engineer: formData.assigned_engineer,
         stage: 'Receiving', problem: '', price: '', client_decision: 'Pending', repair_status: 'In Progress', outbound_status: 'In Inventory'
       };
       await supabase.from('items').insert([newItem]);
-      
       const { data: newLog } = await supabase.from('history_logs').insert([{ item_id: newItemId, stage: 'Receiving' }]).select().single();
       setItems([...items, { ...newItem, history: newLog ? [newLog] : [] }]);
     }
-    setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null });
+    setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' });
     setShowClientDropdown(false);
   };
 
@@ -152,33 +150,46 @@ export default function App() {
   const startEdit = (item) => {
     if (!isInternal) return;
     setEditingItem(item);
-    setFormData({ itemName: item.name || '', itemBrand: item.brand || '', clientPhone: item.owner || '', clientName: getClientName(item.owner) || '', description: item.description || '', photo: null });
+    setFormData({ itemName: item.name || '', itemBrand: item.brand || '', clientPhone: item.owner || '', clientName: getClientName(item.owner) || '', description: item.description || '', photo: null, assigned_engineer: item.assigned_engineer || '' });
   };
 
   const filteredClients = customerList.filter(c => c.username.includes(formData.clientPhone) && (c.client_name || '').toLowerCase().includes(formData.clientName.toLowerCase()));
 
+  // FULL WIDTH LAYOUT: Removed max-w, adjusted padding
   return (
-    <div className="min-h-screen bg-slate-300 p-6 md:p-10 text-left font-sans text-slate-800">
-      <div className="max-w-[1400px] mx-auto">
-        <div className="bg-slate-100 rounded-2xl shadow-md border border-slate-300 p-6 md:p-8 mb-8">
+    <div className="min-h-screen bg-slate-300 p-2 md:p-4 text-left font-sans text-slate-800">
+      <div className="w-full">
+        <div className="bg-slate-100 rounded-2xl shadow-md border border-slate-300 p-4 md:p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-2">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-slate-800 text-slate-100 rounded-xl flex items-center justify-center shadow-md shadow-slate-400"><Truck size={24} /></div>
+              
+              {/* COMPANY LOGO PLACEHOLDER */}
+              <div className="w-14 h-14 bg-white border-2 border-dashed border-slate-400 rounded-xl flex items-center justify-center shadow-sm overflow-hidden text-[10px] font-bold text-slate-400 text-center leading-tight">
+                {/* Replace this div with an actual <img> tag when ready: */}
+                {/* <img src="YOUR_LOGO_URL_HERE" alt="Company Logo" className="w-full h-full object-cover" /> */}
+                LOGO<br/>HERE
+              </div>
+
               <div>
                 <h1 className="text-2xl font-extrabold text-slate-900 m-0 tracking-tight">TraceNexus Dashboard</h1>
                 <div className="flex items-center gap-3 mt-1.5">
                   <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide flex items-center gap-1.5 uppercase ${isAdmin ? 'bg-slate-300 text-slate-800' : userRole === 'staff' ? 'bg-slate-200 text-slate-700' : 'bg-slate-200 text-slate-600'}`}>
-                    {isAdmin ? <><Shield size={12}/> Admin</> : userRole === 'staff' ? <><Activity size={12}/> Staff</> : <><User size={12}/> Client</>}
+                    {isAdmin ? <><Shield size={12}/> Admin</> : userRole === 'staff' ? <><Activity size={12}/> Engineer</> : <><User size={12}/> Client</>}
                   </span>
                   <span className="text-slate-600 text-sm font-medium">Session: <b className="text-slate-900">{currentUser}</b></span>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* GOOGLE MAPS LOCATION BUTTON */}
+              <a href="https://maps.google.com/?q=Sepang+Selangor+Malaysia" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-300">
+                <MapPin size={16} /> Location
+              </a>
+              
               {isInternal && (
                 <button onClick={loadData} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-300">
-                  <RefreshCw size={16} className={isLoading ? "animate-spin text-slate-800" : ""} /> Sync Database
+                  <RefreshCw size={16} className={isLoading ? "animate-spin text-slate-800" : ""} /> Sync
                 </button>
               )}
               <button onClick={handleLogout} className="flex items-center gap-2 text-slate-600 hover:text-slate-100 hover:bg-slate-800 bg-slate-200 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-300">
@@ -225,34 +236,48 @@ export default function App() {
                       <div className="relative md:col-span-2 flex flex-col gap-3">
                         <div className="relative"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl bg-slate-50 text-sm" /></div>
                         
-                        <div className="flex items-center gap-4">
-                          <label className="flex items-center gap-2 bg-slate-100 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg cursor-pointer hover:bg-slate-300 transition-colors text-sm font-semibold shadow-sm">
-                            <ImagePlus size={16} className="text-slate-600" /> {formData.photo ? 'Change Photo' : 'Attach Device Photo'}
-                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                          </label>
-                          {formData.photo && (
-                            <div className="relative border border-slate-300 rounded-lg p-1 bg-slate-100">
-                              <img src={formData.photo} alt="Preview" className="h-10 w-10 object-cover rounded-md" />
-                              <button type="button" onClick={() => setFormData({...formData, photo: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12}/></button>
-                            </div>
-                          )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="relative">
+                            <Wrench size={16} className="absolute left-4 top-3.5 text-slate-500" />
+                            <select value={formData.assigned_engineer || ''} onChange={(e) => setFormData({...formData, assigned_engineer: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm appearance-none cursor-pointer">
+                              <option value="">Assign Engineer (Optional)</option>
+                              {engineersList.map(eng => <option key={eng.username} value={eng.username}>{eng.client_name || eng.username}</option>)}
+                            </select>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <label className="flex items-center gap-2 bg-slate-100 border border-slate-300 text-slate-700 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-300 transition-colors text-sm font-semibold shadow-sm w-full justify-center">
+                              <ImagePlus size={16} className="text-slate-600" /> {formData.photo ? 'Change Photo' : 'Attach Device Photo'}
+                              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                            </label>
+                            {formData.photo && (
+                              <div className="relative border border-slate-300 rounded-lg p-1 bg-slate-100 flex-none">
+                                <img src={formData.photo} alt="Preview" className="h-10 w-10 object-cover rounded-md" />
+                                <button type="button" onClick={() => setFormData({...formData, photo: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12}/></button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex gap-3 mt-2 justify-end">
-                      {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null }) }} className="bg-slate-300 hover:bg-slate-400 text-slate-800 border border-slate-400 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
-                      <button type="submit" className={`bg-slate-800 hover:bg-slate-900 text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md shadow-slate-400/50 text-sm`}>{editingItem ? 'Save Updates' : 'Add to Pipeline'}</button>
+                      {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' }) }} className="bg-slate-300 hover:bg-slate-400 text-slate-800 border border-slate-400 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
+                      <button type="submit" className={`bg-slate-800 hover:bg-slate-900 text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md shadow-slate-400/50 text-sm`}>{editingItem ? 'Save Updates' : 'Add Item'}</button>
                     </div>
                   </form>
                 </div>
               )}
               
-              <div className="flex gap-2 w-full bg-slate-200/80 p-1 rounded-lg self-start overflow-x-auto relative z-30">
-                <button onClick={() => setActiveTab('board')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'board' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><LayoutDashboard size={16} /> Pipeline View</button>
-                <button onClick={() => setActiveTab('history')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'history' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><History size={16} /> Audit Explorer</button>
-                {isAdmin && <button onClick={() => setActiveTab('clients')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'clients' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><Users size={16} /> Client Directory</button>}
-                <button onClick={() => setActiveTab('requests')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'requests' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}>
+              <div className="flex gap-2 w-full bg-slate-200/80 p-1 rounded-lg self-start overflow-x-auto relative z-30 flex-nowrap">
+                <button onClick={() => setActiveTab('board')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'board' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><LayoutDashboard size={16} /> Pipeline View</button>
+                <button onClick={() => setActiveTab('history')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'history' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><History size={16} /> Audit Explorer</button>
+                {isAdmin && (
+                  <>
+                    <button onClick={() => setActiveTab('clients')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'clients' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><Users size={16} /> Client Directory</button>
+                    <button onClick={() => setActiveTab('engineers')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'engineers' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><Wrench size={16} /> Engineer Directory</button>
+                  </>
+                )}
+                <button onClick={() => setActiveTab('requests')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'requests' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}>
                   <Inbox size={16} /> Incoming Requests 
                   {requests.length > 0 && <span className="ml-1.5 bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded-full">{requests.length}</span>}
                 </button>
@@ -267,10 +292,12 @@ export default function App() {
           <HistoryLog items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} getClientName={getClientName} supabase={supabase} />
         ) : activeTab === 'clients' && isAdmin ? (
           <ClientManagement usersDB={usersDB} setUsersDB={setUsersDB} items={items} setItems={setItems} isAdmin={isAdmin} supabase={supabase} />
+        ) : activeTab === 'engineers' && isAdmin ? (
+          <EngineerManagement usersDB={usersDB} setUsersDB={setUsersDB} isAdmin={isAdmin} supabase={supabase} />
         ) : activeTab === 'requests' ? (
           <RequestsManagement requests={requests} setRequests={setRequests} items={items} setItems={setItems} usersDB={usersDB} setUsersDB={setUsersDB} supabase={supabase} />
         ) : (
-          <KanbanBoard items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} startEdit={startEdit} deleteItem={deleteItem} getClientName={getClientName} updateItemData={updateItemData} supabase={supabase} />
+          <KanbanBoard items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} startEdit={startEdit} deleteItem={deleteItem} getClientName={getClientName} updateItemData={updateItemData} supabase={supabase} currentUser={currentUser} usersDB={usersDB} />
         )}
       </div>
     </div>
