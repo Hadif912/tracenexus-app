@@ -1,5 +1,5 @@
 import { STAGES, STAGE_CONFIG } from '../constants';
-import { Package, Edit2, Trash2, Phone, Clock, ArrowLeft, ArrowRight, CheckCircle2, User } from 'lucide-react';
+import { Package, Edit2, Trash2, Phone, Clock, ArrowLeft, ArrowRight, CheckCircle2, User, Image as ImageIcon } from 'lucide-react';
 
 export default function KanbanBoard({ items, setItems, isAdmin, isInternal, startEdit, deleteItem, getClientName, updateItemData }) {
   
@@ -37,6 +37,14 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
             <div className="flex-1 overflow-y-auto flex flex-col gap-4 pr-2 custom-scrollbar">
               {stageItems.map(item => (
                 <div key={item.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-[0_2px_8px_rgb(0,0,0,0.04)] flex flex-col justify-between hover:border-blue-300 transition-colors group">
+                  
+                  {/* Photo Display */}
+                  {item.photo && (
+                    <div className="mb-4 rounded-lg overflow-hidden border border-slate-100 bg-slate-50 relative group/img">
+                      <img src={item.photo} alt="Device" className="w-full h-32 object-cover object-center" />
+                    </div>
+                  )}
+
                   <div>
                     <div className="flex justify-between items-start mb-3">
                       <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-md border tracking-wide ${config.badge} border-transparent`}>
@@ -66,66 +74,30 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
                     </p>
                   </div>
 
-                  {/* Dynamic Stage Actions */}
                   <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-3">
-                    
-                    {/* Inspection Fields */}
                     {stage === 'Inspection' && (
                       <div className="flex flex-col gap-2">
-                        <input 
-                          type="text" 
-                          placeholder="Detected problem..." 
-                          defaultValue={item.problem || ''} 
-                          onBlur={(e) => updateItemData(item.id, { problem: e.target.value })} 
-                          className="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 outline-none" 
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="Price (e.g. $150)" 
-                          defaultValue={item.price || ''} 
-                          onBlur={(e) => updateItemData(item.id, { price: e.target.value })} 
-                          className="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 outline-none" 
-                        />
+                        <input type="text" placeholder="Detected problem..." defaultValue={item.problem || ''} onBlur={(e) => updateItemData(item.id, { problem: e.target.value })} className="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 outline-none" />
+                        <input type="text" placeholder="Price (e.g. $150)" defaultValue={item.price || ''} onBlur={(e) => updateItemData(item.id, { price: e.target.value })} className="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 outline-none" />
                       </div>
                     )}
-
-                    {/* Inform Field */}
                     {stage === 'Inform' && (
                       <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-center text-xs font-semibold text-slate-600">
                         Client Approval: <span className={item.clientDecision === 'Proceed' ? 'text-emerald-600' : item.clientDecision === 'Cancel' ? 'text-red-600' : 'text-amber-500'}>{item.clientDecision || 'Pending...'}</span>
                       </div>
                     )}
-
-                    {/* Status Field */}
                     {stage === 'Status' && (
                       <div className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded-lg border border-slate-100">
                         <span className="font-bold text-slate-600">Repair Status:</span>
-                        <select 
-                          value={item.repairStatus || 'In Progress'} 
-                          onChange={(e) => updateItemData(item.id, { repairStatus: e.target.value })} 
-                          className="p-1 border border-slate-200 rounded bg-white font-semibold text-blue-600 outline-none cursor-pointer"
-                        >
-                          <option value="In Progress">In Progress</option>
-                          <option value="Done">Done</option>
-                        </select>
+                        <select value={item.repairStatus || 'In Progress'} onChange={(e) => updateItemData(item.id, { repairStatus: e.target.value })} className="p-1 border border-slate-200 rounded bg-white font-semibold text-blue-600 outline-none cursor-pointer"><option value="In Progress">In Progress</option><option value="Done">Done</option></select>
                       </div>
                     )}
-
-                    {/* Outbound Field */}
                     {stage === 'Outbound' && (
                       <div className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded-lg border border-slate-100">
                         <span className="font-bold text-slate-600">Inventory:</span>
-                        <select 
-                          value={item.outboundStatus || 'In Inventory'} 
-                          onChange={(e) => updateItemData(item.id, { outboundStatus: e.target.value })} 
-                          className="p-1 border border-slate-200 rounded bg-white font-semibold text-blue-600 outline-none cursor-pointer"
-                        >
-                          <option value="In Inventory">In Inventory</option>
-                          <option value="Delivered">Delivered</option>
-                        </select>
+                        <select value={item.outboundStatus || 'In Inventory'} onChange={(e) => updateItemData(item.id, { outboundStatus: e.target.value })} className="p-1 border border-slate-200 rounded bg-white font-semibold text-blue-600 outline-none cursor-pointer"><option value="In Inventory">In Inventory</option><option value="Delivered">Delivered</option></select>
                       </div>
                     )}
-
                   </div>
 
                   <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">

@@ -5,7 +5,7 @@ import KanbanBoard from './components/KanbanBoard';
 import HistoryLog from './components/HistoryLog';
 import CustomerDashboard from './components/CustomerDashboard';
 import ClientManagement from './components/ClientManagement';
-import { Truck, Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users } from 'lucide-react';
+import { Truck, Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X } from 'lucide-react';
 
 export default function App() {
   const [userRole, setUserRole] = useState(() => localStorage.getItem('wh_role') || null);
@@ -26,11 +26,12 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_ITEMS;
   });
   
-  const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '' });
+  // Added photo field to formData
+  const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null });
   const [editingItem, setEditingItem] = useState(null);
   
   const [showClientDropdown, setShowClientDropdown] = useState(false);
-  const dropdownRef = useRef(null); // NEW: Ref to track the dropdown container
+  const dropdownRef = useRef(null); 
 
   const isInternal = userRole === 'admin' || userRole === 'staff';
   const isAdmin = userRole === 'admin';
@@ -43,7 +44,6 @@ export default function App() {
     if (currentUser) localStorage.setItem('wh_user', currentUser); else localStorage.removeItem('wh_user');
   }, [userRole, currentUser]);
 
-  // NEW: Bulletproof "Click Outside" detector for the dropdown
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -65,9 +65,33 @@ export default function App() {
     setItems(items.map(item => item.id === itemId ? { ...item, ...updates } : item));
   };
 
-  if (!userRole) {
-    return <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} />;
-  }
+  // --- NEW: Image Compressor to prevent localStorage overflow ---
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        // heavily restrict max width to save DB space
+        const MAX_WIDTH = 400; 
+        const scaleSize = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scaleSize;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // Convert to highly compressed JPEG base64
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6); 
+        setFormData({ ...formData, photo: compressedBase64 });
+      };
+    };
+  };
 
   const handleReceiveItem = (e) => {
     e.preventDefault();
@@ -85,18 +109,21 @@ export default function App() {
     }
 
     if (editingItem) {
-      setItems(items.map(i => i.id === editingItem.id ? { ...i, name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone } : i));
+      setItems(items.map(i => i.id === editingItem.id ? { 
+        ...i, name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone,
+        photo: formData.photo || i.photo // Keep old photo if a new one isn't uploaded
+      } : i));
       setEditingItem(null);
     } else {
       setItems([...items, { 
         id: `REP-${Math.floor(1000 + Math.random() * 9000)}`, 
-        name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone, 
+        name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone, photo: formData.photo,
         stage: 'Receiving', problem: '', price: '', clientDecision: 'Pending', repairStatus: 'In Progress', outboundStatus: 'In Inventory',
         history: [{ stage: 'Receiving', timestamp: new Date().toLocaleString(), iso: new Date().toISOString() }] 
       }]);
     }
-    setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '' });
-    setShowClientDropdown(false); // Hide after saving
+    setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null });
+    setShowClientDropdown(false);
   };
 
   const deleteItem = (id) => {
@@ -107,7 +134,7 @@ export default function App() {
   const startEdit = (item) => {
     if (!isInternal) return;
     setEditingItem(item);
-    setFormData({ itemName: item.name || '', itemBrand: item.brand || '', clientPhone: item.owner || '', clientName: getClientName(item.owner) || '', description: item.description || '' });
+    setFormData({ itemName: item.name || '', itemBrand: item.brand || '', clientPhone: item.owner || '', clientName: getClientName(item.owner) || '', description: item.description || '', photo: null });
   };
 
   const filteredClients = customerList.filter(c => {
@@ -151,33 +178,15 @@ export default function App() {
                       <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" required/></div>
                       <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" /></div>
                       
-                      {/* Smart Client Selection Area with Ref attached */}
                       <div className="md:col-span-2 relative" ref={dropdownRef}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="relative">
                             <User size={16} className="absolute left-4 top-3.5 text-slate-400" />
-                            <input 
-                              type="text" 
-                              placeholder="Client Name" 
-                              value={formData.clientName} 
-                              onChange={(e) => { setFormData({...formData, clientName: e.target.value}); setShowClientDropdown(true); }} 
-                              onFocus={() => setShowClientDropdown(true)}
-                              className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" 
-                              autoComplete="off"
-                            />
+                            <input type="text" placeholder="Client Name" value={formData.clientName} onChange={(e) => { setFormData({...formData, clientName: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" autoComplete="off"/>
                           </div>
                           <div className="relative">
                             <Phone size={16} className="absolute left-4 top-3.5 text-slate-400" />
-                            <input 
-                              type="text" 
-                              placeholder="Client Phone (Used for Login)" 
-                              value={formData.clientPhone} 
-                              onChange={(e) => { setFormData({...formData, clientPhone: e.target.value}); setShowClientDropdown(true); }} 
-                              onFocus={() => setShowClientDropdown(true)}
-                              className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" 
-                              required
-                              autoComplete="off"
-                            />
+                            <input type="text" placeholder="Client Phone (Used for Login)" value={formData.clientPhone} onChange={(e) => { setFormData({...formData, clientPhone: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" required autoComplete="off"/>
                           </div>
                         </div>
 
@@ -187,46 +196,50 @@ export default function App() {
                               <div className="p-2 flex flex-col gap-1">
                                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Existing Clients</div>
                                 {filteredClients.map(client => (
-                                  <button
-                                    key={client.username}
-                                    type="button"
-                                    onClick={() => {
-                                      setFormData(prev => ({ ...prev, clientName: client.clientName || '', clientPhone: client.username }));
-                                      setShowClientDropdown(false);
-                                    }}
-                                    className="flex justify-between items-center w-full px-3 py-2.5 hover:bg-blue-50 rounded-lg transition-colors text-left"
-                                  >
-                                    <span className="font-semibold text-slate-700 text-sm flex items-center gap-2">
-                                      <User size={14} className="text-blue-500"/> {client.clientName || 'Unknown'}
-                                    </span>
-                                    <span className="font-mono text-xs text-slate-500 flex items-center gap-1">
-                                      <Phone size={12}/> {client.username}
-                                    </span>
+                                  <button key={client.username} type="button" onClick={() => { setFormData(prev => ({ ...prev, clientName: client.clientName || '', clientPhone: client.username })); setShowClientDropdown(false); }} className="flex justify-between items-center w-full px-3 py-2.5 hover:bg-blue-50 rounded-lg transition-colors text-left">
+                                    <span className="font-semibold text-slate-700 text-sm flex items-center gap-2"><User size={14} className="text-blue-500"/> {client.clientName || 'Unknown'}</span>
+                                    <span className="font-mono text-xs text-slate-500 flex items-center gap-1"><Phone size={12}/> {client.username}</span>
                                   </button>
                                 ))}
                               </div>
                             )}
-                            
                             <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-start gap-3 rounded-b-xl">
-                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-none mt-0.5">
-                                  <Plus size={16} />
-                              </div>
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-none mt-0.5"><Plus size={16} /></div>
                               <div>
                                   <p className="text-sm font-bold text-slate-700">Auto-Register New Client</p>
-                                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                                    Can't find them? Just type their name and phone above. Submitting this repair job will automatically register them as a new client instantly.
-                                  </p>
+                                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">Can't find them? Just type their name and phone above. Submitting this repair job will automatically register them as a new client instantly.</p>
                               </div>
                             </div>
                           </div>
                         )}
                       </div>
 
-                      <div className="relative md:col-span-2"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Initial Description from Client" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" /></div>
+                      <div className="relative md:col-span-2 flex flex-col gap-3">
+                        <div className="relative">
+                          <AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-400" />
+                          <input type="text" placeholder="Initial Description from Client" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" />
+                        </div>
+                        
+                        {/* NEW: Photo Upload UI */}
+                        <div className="flex items-center gap-4">
+                          <label className="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-all text-sm font-semibold shadow-sm">
+                            <ImagePlus size={16} className="text-blue-500" />
+                            {formData.photo ? 'Change Photo' : 'Attach Device Photo'}
+                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                          </label>
+                          {formData.photo && (
+                            <div className="relative border border-slate-200 rounded-lg p-1">
+                              <img src={formData.photo} alt="Preview" className="h-10 w-10 object-cover rounded-md" />
+                              <button type="button" onClick={() => setFormData({...formData, photo: null})} className="absolute -top-2 -right-2 bg-red-100 text-red-600 rounded-full p-0.5 hover:bg-red-200"><X size={12}/></button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                     </div>
 
                     <div className="flex gap-3 mt-2 justify-end">
-                      {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '' }) }} className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
+                      {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null }) }} className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
                       <button type="submit" className={`bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md shadow-blue-200/50 text-sm`}>
                         {editingItem ? 'Save Updates' : 'Add to Pipeline'}
                       </button>

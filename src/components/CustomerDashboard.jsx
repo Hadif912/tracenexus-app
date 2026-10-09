@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Package, Clock, CheckCircle2, History, AlertCircle } from 'lucide-react';
+import { Search, Package, Clock, CheckCircle2, History, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { STAGE_CONFIG } from '../constants';
 
 export default function CustomerDashboard({ items, currentUser, updateItemData }) {
@@ -34,6 +34,14 @@ export default function CustomerDashboard({ items, currentUser, updateItemData }
           const config = STAGE_CONFIG[item.stage];
           return (
             <div key={item.id} className="border border-slate-200 rounded-2xl p-6 hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-200 transition-all bg-white flex flex-col justify-between group">
+              
+              {/* Photo Display for Customer */}
+              {item.photo && (
+                <div className="mb-5 rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
+                  <img src={item.photo} alt="Device" className="w-full h-36 object-cover object-center" />
+                </div>
+              )}
+
               <div>
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -52,7 +60,6 @@ export default function CustomerDashboard({ items, currentUser, updateItemData }
                   {item.description && <p className="text-xs text-slate-600 mt-2 leading-relaxed">{item.description}</p>}
                 </div>
                 
-                {/* Dynamic Content For Customers based on specific fields */}
                 <div className="mt-4 pt-5 border-t border-slate-100">
                   <p className="text-[11px] text-slate-400 mb-2 uppercase font-bold tracking-widest">Active Status</p>
                   <div className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold ${config.bg} ${config.text} border ${config.border}`}>
@@ -63,30 +70,21 @@ export default function CustomerDashboard({ items, currentUser, updateItemData }
                   </div>
                 </div>
 
-                {/* Show Inspection Report details if they exist */}
                 {(item.problem || item.price) && (
                   <div className="mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                    <p className="text-[11px] uppercase font-bold text-slate-500 mb-2 flex items-center gap-1.5">
-                      <AlertCircle size={14}/> Inspection Report
-                    </p>
+                    <p className="text-[11px] uppercase font-bold text-slate-500 mb-2 flex items-center gap-1.5"><AlertCircle size={14}/> Inspection Report</p>
                     {item.problem && <p className="text-sm font-medium text-slate-800">{item.problem}</p>}
                     {item.price && <p className="text-sm font-extrabold text-blue-600 mt-1">Quoted Price: {item.price}</p>}
                   </div>
                 )}
 
-                {/* Provide Buttons to Accept/Cancel in Inform Stage */}
                 {item.stage === 'Inform' && (!item.clientDecision || item.clientDecision === 'Pending') && (
                   <div className="mt-4 flex gap-2">
-                    <button onClick={() => updateItemData(item.id, { clientDecision: 'Proceed' })} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-lg font-bold text-xs transition-colors">
-                      Proceed
-                    </button>
-                    <button onClick={() => updateItemData(item.id, { clientDecision: 'Cancel' })} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-lg font-bold text-xs transition-colors">
-                      Cancel Repair
-                    </button>
+                    <button onClick={() => updateItemData(item.id, { clientDecision: 'Proceed' })} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-lg font-bold text-xs transition-colors">Proceed</button>
+                    <button onClick={() => updateItemData(item.id, { clientDecision: 'Cancel' })} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-lg font-bold text-xs transition-colors">Cancel Repair</button>
                   </div>
                 )}
 
-                {/* Show the Decision if already made */}
                 {item.clientDecision && item.clientDecision !== 'Pending' && (
                   <p className="text-xs font-bold text-slate-600 mt-4">
                     Your Decision: <span className={item.clientDecision === 'Proceed' ? 'text-emerald-600' : 'text-red-600'}>{item.clientDecision}</span>
