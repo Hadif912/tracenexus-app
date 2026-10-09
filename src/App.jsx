@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { INITIAL_ITEMS } from './constants';
 import Auth from './components/Auth';
 import KanbanBoard from './components/KanbanBoard';
@@ -29,8 +29,8 @@ export default function App() {
   const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '' });
   const [editingItem, setEditingItem] = useState(null);
   
-  // NEW: State to control the visibility of the client selection slider/dropdown
   const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const dropdownRef = useRef(null); // NEW: Ref to track the dropdown container
 
   const isInternal = userRole === 'admin' || userRole === 'staff';
   const isAdmin = userRole === 'admin';
@@ -42,6 +42,17 @@ export default function App() {
     if (userRole) localStorage.setItem('wh_role', userRole); else localStorage.removeItem('wh_role');
     if (currentUser) localStorage.setItem('wh_user', currentUser); else localStorage.removeItem('wh_user');
   }, [userRole, currentUser]);
+
+  // NEW: Bulletproof "Click Outside" detector for the dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowClientDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const getClientName = (phone) => {
     const user = usersDB.find(u => u.username === phone);
@@ -85,6 +96,7 @@ export default function App() {
       }]);
     }
     setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '' });
+    setShowClientDropdown(false); // Hide after saving
   };
 
   const deleteItem = (id) => {
@@ -98,7 +110,6 @@ export default function App() {
     setFormData({ itemName: item.name || '', itemBrand: item.brand || '', clientPhone: item.owner || '', clientName: getClientName(item.owner) || '', description: item.description || '' });
   };
 
-  // Filter clients dynamically as the admin types
   const filteredClients = customerList.filter(c => {
     const matchPhone = c.username.includes(formData.clientPhone);
     const matchName = (c.clientName || '').toLowerCase().includes(formData.clientName.toLowerCase());
@@ -130,19 +141,18 @@ export default function App() {
           {isInternal && (
             <div className="flex flex-col gap-6 border-t border-slate-100 pt-6 mt-6">
               {activeTab === 'board' && (
-                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm relative z-40">
                   <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
                     {editingItem ? <Edit2 size={18} className="text-blue-500"/> : <Plus size={18} className="text-blue-600"/>} {editingItem ? 'Edit Job' : 'Create New Repair Job'}
                   </h3>
                   <form onSubmit={handleReceiveItem} className="flex flex-col gap-4 w-full">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       
-                      {/* Row 1: Device Details */}
                       <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" required/></div>
                       <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" /></div>
                       
-                      {/* Row 2: Smart Client Selection Area */}
-                      <div className="md:col-span-2 relative" onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}>
+                      {/* Smart Client Selection Area with Ref attached */}
+                      <div className="md:col-span-2 relative" ref={dropdownRef}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="relative">
                             <User size={16} className="absolute left-4 top-3.5 text-slate-400" />
@@ -171,9 +181,8 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Interactive Client Slider / Dropdown */}
                         {showClientDropdown && (
-                          <div className="absolute z-50 top-full left-0 w-full mt-2 bg-white border border-slate-200 shadow-xl rounded-xl max-h-72 overflow-y-auto overflow-x-hidden">
+                          <div className="absolute z-50 top-full left-0 w-full mt-2 bg-white border border-slate-200 shadow-[0_10px_40px_rgb(0,0,0,0.08)] rounded-xl max-h-72 overflow-y-auto overflow-x-hidden">
                             {filteredClients.length > 0 && (
                               <div className="p-2 flex flex-col gap-1">
                                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Existing Clients</div>
@@ -213,7 +222,6 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* Row 3: Description */}
                       <div className="relative md:col-span-2"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Initial Description from Client" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" /></div>
                     </div>
 
@@ -227,7 +235,7 @@ export default function App() {
                 </div>
               )}
               
-              <div className="flex gap-2 w-full bg-slate-100/50 p-1 rounded-lg self-start overflow-x-auto">
+              <div className="flex gap-2 w-full bg-slate-100/50 p-1 rounded-lg self-start overflow-x-auto relative z-30">
                 <button onClick={() => setActiveTab('board')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'board' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}><LayoutDashboard size={16} /> Pipeline View</button>
                 <button onClick={() => setActiveTab('history')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'history' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}><History size={16} /> Audit Explorer</button>
                 {isAdmin && (
