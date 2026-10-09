@@ -273,7 +273,7 @@ export default function App() {
                 {isAdmin && (
                   <>
                     <button onClick={() => setActiveTab('clients')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'clients' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><Users size={16} /> Client Directory</button>
-                    <button onClick={() => setActiveTab('engineers')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'engineers' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><Wrench size={16} /> Engineer Directory</button>
+                    <button onClick={() => setActiveTab('engineers')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'engineers' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><Briefcase size={16} /> Staff Directory</button>
                   </>
                 )}
                 <button onClick={() => setActiveTab('requests')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'requests' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}>
