@@ -8,8 +8,16 @@ import ClientManagement from './components/ClientManagement';
 import { Truck, Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X } from 'lucide-react';
 
 export default function App() {
-  const [userRole, setUserRole] = useState(() => localStorage.getItem('wh_role') || null);
-  const [currentUser, setCurrentUser] = useState(() => localStorage.getItem('wh_user') || null);
+  // FIXED: Safeguard against the string "null" bug
+  const [userRole, setUserRole] = useState(() => {
+    const role = localStorage.getItem('wh_role');
+    return (role && role !== 'null') ? role : null;
+  });
+  const [currentUser, setCurrentUser] = useState(() => {
+    const user = localStorage.getItem('wh_user');
+    return (user && user !== 'null') ? user : null;
+  });
+  
   const [activeTab, setActiveTab] = useState('board'); 
   
   const [usersDB, setUsersDB] = useState(() => {
@@ -26,7 +34,6 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_ITEMS;
   });
   
-  // Added photo field to formData
   const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null });
   const [editingItem, setEditingItem] = useState(null);
   
@@ -39,9 +46,10 @@ export default function App() {
 
   useEffect(() => { localStorage.setItem('wh_usersDB', JSON.stringify(usersDB)); }, [usersDB]);
   useEffect(() => { localStorage.setItem('wh_items', JSON.stringify(items)); }, [items]);
+  
   useEffect(() => {
-    if (userRole) localStorage.setItem('wh_role', userRole); else localStorage.removeItem('wh_role');
-    if (currentUser) localStorage.setItem('wh_user', currentUser); else localStorage.removeItem('wh_user');
+    if (userRole && userRole !== 'null') localStorage.setItem('wh_role', userRole); 
+    if (currentUser && currentUser !== 'null') localStorage.setItem('wh_user', currentUser); 
   }, [userRole, currentUser]);
 
   useEffect(() => {
@@ -59,13 +67,19 @@ export default function App() {
     return user && user.clientName ? user.clientName : 'Unknown Client';
   };
 
-  const handleLogout = () => { setUserRole(null); setCurrentUser(null); };
+  // FIXED: Bulletproof logout that completely wipes memory and reloads the app
+  const handleLogout = () => { 
+    localStorage.removeItem('wh_role');
+    localStorage.removeItem('wh_user');
+    setUserRole(null); 
+    setCurrentUser(null); 
+    window.location.reload(); 
+  };
 
   const updateItemData = (itemId, updates) => {
     setItems(items.map(item => item.id === itemId ? { ...item, ...updates } : item));
   };
 
-  // --- NEW: Image Compressor to prevent localStorage overflow ---
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -77,21 +91,22 @@ export default function App() {
       img.src = event.target.result;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        // heavily restrict max width to save DB space
         const MAX_WIDTH = 400; 
         const scaleSize = MAX_WIDTH / img.width;
         canvas.width = MAX_WIDTH;
         canvas.height = img.height * scaleSize;
-
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        // Convert to highly compressed JPEG base64
         const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6); 
         setFormData({ ...formData, photo: compressedBase64 });
       };
     };
   };
+
+  // Safegaurd to block rendering if no valid user exists
+  if (!userRole || userRole === 'null') {
+    return <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} />;
+  }
 
   const handleReceiveItem = (e) => {
     e.preventDefault();
@@ -111,7 +126,7 @@ export default function App() {
     if (editingItem) {
       setItems(items.map(i => i.id === editingItem.id ? { 
         ...i, name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone,
-        photo: formData.photo || i.photo // Keep old photo if a new one isn't uploaded
+        photo: formData.photo || i.photo
       } : i));
       setEditingItem(null);
     } else {
@@ -220,7 +235,6 @@ export default function App() {
                           <input type="text" placeholder="Initial Description from Client" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" />
                         </div>
                         
-                        {/* NEW: Photo Upload UI */}
                         <div className="flex items-center gap-4">
                           <label className="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-all text-sm font-semibold shadow-sm">
                             <ImagePlus size={16} className="text-blue-500" />
