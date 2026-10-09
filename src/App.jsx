@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from './supabaseClient'; // NEW: Import Supabase
+import { supabase } from './supabaseClient';
 import Auth from './components/Auth';
 import KanbanBoard from './components/KanbanBoard';
 import HistoryLog from './components/HistoryLog';
@@ -20,7 +20,6 @@ export default function App() {
   
   const [activeTab, setActiveTab] = useState('board'); 
   
-  // NEW: State arrays start empty, waiting for Supabase
   const [usersDB, setUsersDB] = useState([]);
   const [items, setItems] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -35,31 +34,33 @@ export default function App() {
   const isAdmin = userRole === 'admin';
   const customerList = usersDB.filter(u => u.role === 'customer');
 
-  // NEW: Fetch all data from PostgreSQL on initial load
+  // FIX: Bulletproof Database Fetching
   useEffect(() => {
     async function loadData() {
-      const { data: usersData } = await supabase.from('users').select('*');
-      if (usersData) setUsersDB(usersData);
+      try {
+        const { data: usersData } = await supabase.from('users').select('*');
+        if (usersData) setUsersDB(usersData);
 
-      const { data: reqData } = await supabase.from('repair_requests').select('*');
-      if (reqData) setRequests(reqData);
+        const { data: reqData } = await supabase.from('repair_requests').select('*');
+        if (reqData) setRequests(reqData);
 
-      // Fetch items and JOIN the history logs automatically
-      const { data: itemsData } = await supabase.from('items').select('*, history:history_logs(*)');
-      if (itemsData) {
-        // Sort history by date to ensure pipeline is correct
-        const sortedItems = itemsData.map(item => ({
-          ...item,
-          history: item.history.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-        }));
-        setItems(sortedItems);
+        const { data: itemsData } = await supabase.from('items').select('*, history:history_logs(*)');
+        if (itemsData) {
+          const sortedItems = itemsData.map(item => ({
+            ...item,
+            history: Array.isArray(item.history) ? item.history.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) : []
+          }));
+          setItems(sortedItems);
+        }
+      } catch (error) {
+        console.error("Safely caught DB error:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     loadData();
   }, []);
 
-  // Keep Session saved in browser so users stay logged in
   useEffect(() => {
     if (userRole && userRole !== 'null') localStorage.setItem('wh_role', userRole); 
     if (currentUser && currentUser !== 'null') localStorage.setItem('wh_user', currentUser); 
@@ -84,7 +85,6 @@ export default function App() {
     setUserRole(null); setCurrentUser(null); window.location.reload(); 
   };
 
-  // Database Update Wrapper
   const updateItemData = async (itemId, updates) => {
     await supabase.from('items').update(updates).eq('id', itemId);
     setItems(items.map(item => item.id === itemId ? { ...item, ...updates } : item));
@@ -109,9 +109,7 @@ export default function App() {
     };
   };
 
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center font-bold text-blue-600">Connecting to Database...</div>;
-  }
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center font-bold text-blue-600">Connecting to Database...</div>;
 
   if (!userRole || userRole === 'null') {
     return <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} addRequest={(req) => setRequests([...requests, req])} supabase={supabase} />;
@@ -146,7 +144,7 @@ export default function App() {
       await supabase.from('items').insert([newItem]);
       
       const { data: newLog } = await supabase.from('history_logs').insert([{ item_id: newItemId, stage: 'Receiving' }]).select().single();
-      setItems([...items, { ...newItem, history: [newLog] }]);
+      setItems([...items, { ...newItem, history: newLog ? [newLog] : [] }]);
     }
     setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null });
     setShowClientDropdown(false);
