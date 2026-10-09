@@ -1,5 +1,5 @@
 import { STAGES, STAGE_CONFIG } from '../constants';
-import { Package, Edit2, Trash2, Phone, Clock, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Package, Edit2, Trash2, Phone, Clock, ArrowLeft, ArrowRight, CheckCircle2, User } from 'lucide-react';
 
 export default function KanbanBoard({ items, setItems, isAdmin, isInternal, startEdit, deleteItem, getClientName, updateItemData }) {
   
