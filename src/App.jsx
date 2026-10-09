@@ -6,7 +6,8 @@ import HistoryLog from './components/HistoryLog';
 import CustomerDashboard from './components/CustomerDashboard';
 import ClientManagement from './components/ClientManagement';
 import RequestsManagement from './components/RequestsManagement';
-import { Truck, Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox } from 'lucide-react';
+// FIXED: Added RefreshCw to the import list below
+import { Truck, Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw } from 'lucide-react';
 
 export default function App() {
   const [userRole, setUserRole] = useState(() => {
@@ -20,7 +21,6 @@ export default function App() {
   
   const [activeTab, setActiveTab] = useState('board'); 
   
-  // FIXED: Arrays start completely empty. No more localStorage interference.
   const [usersDB, setUsersDB] = useState([]);
   const [items, setItems] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -35,7 +35,6 @@ export default function App() {
   const isAdmin = userRole === 'admin';
   const customerList = usersDB.filter(u => u.role === 'customer');
 
-  // NEW: Bulletproof fetching function that can be called manually via the Refresh button
   const loadData = async () => {
     setIsLoading(true);
     try {
@@ -47,7 +46,6 @@ export default function App() {
       if (rErr) console.error("Requests fetch error:", rErr);
       else if (reqData) setRequests(reqData);
 
-      // FIXED: Removed the 'history:' alias which causes silent failures on some Supabase versions
       const { data: itemsData, error: itemsError } = await supabase.from('items').select('*, history_logs(*)');
       if (itemsError) console.error("Items fetch error:", itemsError);
       else if (itemsData) {
@@ -68,7 +66,6 @@ export default function App() {
     loadData();
   }, []);
 
-  // ONLY save session auth to localStorage
   useEffect(() => {
     if (userRole && userRole !== 'null') localStorage.setItem('wh_role', userRole); 
     if (currentUser && currentUser !== 'null') localStorage.setItem('wh_user', currentUser); 
@@ -192,7 +189,6 @@ export default function App() {
               </div>
             </div>
             
-            {/* NEW: Action Buttons (Refresh & Logout) */}
             <div className="flex items-center gap-2">
               {isInternal && (
                 <button onClick={loadData} className="flex items-center gap-2 text-slate-500 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-200">
