@@ -182,7 +182,7 @@ export default function App() {
             
             <div className="flex flex-wrap items-center gap-2">
               {/* GOOGLE MAPS LOCATION BUTTON */}
-              <a href="https://maps.google.com/?q=Sepang+Selangor+Malaysia" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-300">
+              <a href="https://www.google.com/maps/place/KRC+ELECTRONIC/@3.0434607,101.5977605,17z/data=!3m1!4b1!4m6!3m5!1s0x31cc4cb0942a27c7:0x280092f3b1e8a276!8m2!3d3.0434607!4d101.6003354!16s%2Fg%2F11bbt69cjm?entry=ttu&g_ep=EgoyMDI2MTAwNi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-300">
                 <MapPin size={16} /> Location
               </a>
               
