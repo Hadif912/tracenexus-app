@@ -8,7 +8,7 @@ import CustomerDashboard from './components/CustomerDashboard';
 import ClientManagement from './components/ClientManagement';
 import RequestsManagement from './components/RequestsManagement';
 import EngineerManagement from './components/EngineerManagement';
-import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench } from 'lucide-react';
+import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench, Briefcase } from 'lucide-react';
 
 export default function App() {
   const [userRole, setUserRole] = useState(() => {
