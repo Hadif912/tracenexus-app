@@ -113,7 +113,7 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
             <img src={companyLogo} alt="Company Logo" className="w-full h-full object-contain p-2" />
           </div>
 
-          <h1 className="text-2xl font-extrabold text-slate-900 mb-2">{authMode === 'request' ? 'Request a Repair' : 'TraceNexus'}</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900 mb-2">{authMode === 'request' ? 'Request a Repair' : 'KRC Electronic Track & Trace System'}</h1>
           <p className="text-slate-500 text-sm font-medium">{authMode === 'login' ? 'Enterprise Logistics Portal' : authMode === 'request' ? 'Send us your device details.' : 'Customer Registration'}</p>
         </div>
         

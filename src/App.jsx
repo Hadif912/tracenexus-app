@@ -170,7 +170,7 @@ export default function App() {
               </div>
 
               <div>
-                <h1 className="text-2xl font-extrabold text-slate-900 m-0 tracking-tight">TraceNexus Dashboard</h1>
+                <h1 className="text-2xl font-extrabold text-slate-900 m-0 tracking-tight">KRC Electronic Track & Trace Dashboard</h1>
                 <div className="flex items-center gap-3 mt-1.5">
                   <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide flex items-center gap-1.5 uppercase ${isAdmin ? 'bg-slate-300 text-slate-800' : userRole === 'staff' ? 'bg-slate-200 text-slate-700' : 'bg-slate-200 text-slate-600'}`}>
                     {isAdmin ? <><Shield size={12}/> Admin</> : userRole === 'staff' ? <><Activity size={12}/> Engineer</> : <><User size={12}/> Client</>}
