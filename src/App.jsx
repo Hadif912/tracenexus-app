@@ -28,6 +28,9 @@ export default function App() {
   
   const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '' });
   const [editingItem, setEditingItem] = useState(null);
+  
+  // NEW: State to control the visibility of the client selection slider/dropdown
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
 
   const isInternal = userRole === 'admin' || userRole === 'staff';
   const isAdmin = userRole === 'admin';
@@ -47,7 +50,6 @@ export default function App() {
 
   const handleLogout = () => { setUserRole(null); setCurrentUser(null); };
 
-  // --- NEW: Function to update specific fields on an item ---
   const updateItemData = (itemId, updates) => {
     setItems(items.map(item => item.id === itemId ? { ...item, ...updates } : item));
   };
@@ -96,6 +98,13 @@ export default function App() {
     setFormData({ itemName: item.name || '', itemBrand: item.brand || '', clientPhone: item.owner || '', clientName: getClientName(item.owner) || '', description: item.description || '' });
   };
 
+  // Filter clients dynamically as the admin types
+  const filteredClients = customerList.filter(c => {
+    const matchPhone = c.username.includes(formData.clientPhone);
+    const matchName = (c.clientName || '').toLowerCase().includes(formData.clientName.toLowerCase());
+    return matchPhone && matchName;
+  });
+
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-10 text-left font-sans text-slate-800">
       <div className="max-w-[1400px] mx-auto">
@@ -127,12 +136,87 @@ export default function App() {
                   </h3>
                   <form onSubmit={handleReceiveItem} className="flex flex-col gap-4 w-full">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      
+                      {/* Row 1: Device Details */}
                       <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" required/></div>
                       <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" /></div>
-                      <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Client Name" value={formData.clientName} onChange={(e) => setFormData({...formData, clientName: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" /></div>
-                      <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Client Phone (Used for Login)" value={formData.clientPhone} onChange={(e) => setFormData({...formData, clientPhone: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" required/></div>
+                      
+                      {/* Row 2: Smart Client Selection Area */}
+                      <div className="md:col-span-2 relative" onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="relative">
+                            <User size={16} className="absolute left-4 top-3.5 text-slate-400" />
+                            <input 
+                              type="text" 
+                              placeholder="Client Name" 
+                              value={formData.clientName} 
+                              onChange={(e) => { setFormData({...formData, clientName: e.target.value}); setShowClientDropdown(true); }} 
+                              onFocus={() => setShowClientDropdown(true)}
+                              className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" 
+                              autoComplete="off"
+                            />
+                          </div>
+                          <div className="relative">
+                            <Phone size={16} className="absolute left-4 top-3.5 text-slate-400" />
+                            <input 
+                              type="text" 
+                              placeholder="Client Phone (Used for Login)" 
+                              value={formData.clientPhone} 
+                              onChange={(e) => { setFormData({...formData, clientPhone: e.target.value}); setShowClientDropdown(true); }} 
+                              onFocus={() => setShowClientDropdown(true)}
+                              className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" 
+                              required
+                              autoComplete="off"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Interactive Client Slider / Dropdown */}
+                        {showClientDropdown && (
+                          <div className="absolute z-50 top-full left-0 w-full mt-2 bg-white border border-slate-200 shadow-xl rounded-xl max-h-72 overflow-y-auto overflow-x-hidden">
+                            {filteredClients.length > 0 && (
+                              <div className="p-2 flex flex-col gap-1">
+                                <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Existing Clients</div>
+                                {filteredClients.map(client => (
+                                  <button
+                                    key={client.username}
+                                    type="button"
+                                    onClick={() => {
+                                      setFormData(prev => ({ ...prev, clientName: client.clientName || '', clientPhone: client.username }));
+                                      setShowClientDropdown(false);
+                                    }}
+                                    className="flex justify-between items-center w-full px-3 py-2.5 hover:bg-blue-50 rounded-lg transition-colors text-left"
+                                  >
+                                    <span className="font-semibold text-slate-700 text-sm flex items-center gap-2">
+                                      <User size={14} className="text-blue-500"/> {client.clientName || 'Unknown'}
+                                    </span>
+                                    <span className="font-mono text-xs text-slate-500 flex items-center gap-1">
+                                      <Phone size={12}/> {client.username}
+                                    </span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                            
+                            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-start gap-3 rounded-b-xl">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-none mt-0.5">
+                                  <Plus size={16} />
+                              </div>
+                              <div>
+                                  <p className="text-sm font-bold text-slate-700">Auto-Register New Client</p>
+                                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                    Can't find them? Just type their name and phone above. Submitting this repair job will automatically register them as a new client instantly.
+                                  </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Row 3: Description */}
                       <div className="relative md:col-span-2"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Initial Description from Client" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" /></div>
                     </div>
+
                     <div className="flex gap-3 mt-2 justify-end">
                       {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '' }) }} className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
                       <button type="submit" className={`bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md shadow-blue-200/50 text-sm`}>
@@ -142,6 +226,7 @@ export default function App() {
                   </form>
                 </div>
               )}
+              
               <div className="flex gap-2 w-full bg-slate-100/50 p-1 rounded-lg self-start overflow-x-auto">
                 <button onClick={() => setActiveTab('board')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'board' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}><LayoutDashboard size={16} /> Pipeline View</button>
                 <button onClick={() => setActiveTab('history')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'history' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}><History size={16} /> Audit Explorer</button>
