@@ -44,10 +44,11 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
 
               <div className="flex-1 overflow-y-auto flex flex-col gap-4 pr-2 custom-scrollbar">
                 {stageItems.map(item => {
-                  // Role Permissions Check
+                  
+                  // FIXED: Admins automatically get master override permissions, along with the Assigned Engineer
                   const isAssignedEng = item.assigned_engineer === currentUser;
-                  const canInspect = isAssignedEng;
-                  const canStatus = isAssignedEng;
+                  const canInspect = isAdmin || isAssignedEng;
+                  const canStatus = isAdmin || isAssignedEng;
                   const canOutbound = isAdmin;
 
                   return (
@@ -83,7 +84,7 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
                               <div className="text-xs p-2.5 bg-slate-200 rounded-lg border border-slate-300">
                                 <p className="text-slate-600"><span className="font-bold">Problem:</span> {item.problem || 'Pending...'}</p>
                                 <p className="text-slate-600 mt-1"><span className="font-bold">Price:</span> {item.price || 'Pending...'}</p>
-                                <p className="text-[10px] text-amber-600 font-bold mt-2 text-center bg-amber-100 py-1 rounded border border-amber-200">Only assigned engineer can edit</p>
+                                <p className="text-[10px] text-amber-600 font-bold mt-2 text-center bg-amber-100 py-1 rounded border border-amber-200">Only assigned engineer or Admin can edit</p>
                               </div>
                             )}
                           </div>
@@ -99,7 +100,7 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
                                 <span className="font-semibold text-slate-600">{item.repair_status || 'In Progress'}</span>
                               )}
                             </div>
-                            {!canStatus && <p className="text-[10px] text-amber-600 font-bold text-center bg-amber-100 py-1 rounded border border-amber-200">Only assigned engineer can edit</p>}
+                            {!canStatus && <p className="text-[10px] text-amber-600 font-bold text-center bg-amber-100 py-1 rounded border border-amber-200">Only assigned engineer or Admin can edit</p>}
                           </div>
                         )}
                         {stage === 'Outbound' && (
