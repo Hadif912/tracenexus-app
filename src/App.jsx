@@ -20,6 +20,7 @@ export default function App() {
   
   const [activeTab, setActiveTab] = useState('board'); 
   
+  // FIXED: Arrays start completely empty. No more localStorage interference.
   const [usersDB, setUsersDB] = useState([]);
   const [items, setItems] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -34,33 +35,40 @@ export default function App() {
   const isAdmin = userRole === 'admin';
   const customerList = usersDB.filter(u => u.role === 'customer');
 
-  // FIX: Bulletproof Database Fetching
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const { data: usersData } = await supabase.from('users').select('*');
-        if (usersData) setUsersDB(usersData);
+  // NEW: Bulletproof fetching function that can be called manually via the Refresh button
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const { data: usersData, error: uErr } = await supabase.from('users').select('*');
+      if (uErr) console.error("Users fetch error:", uErr);
+      else if (usersData) setUsersDB(usersData);
 
-        const { data: reqData } = await supabase.from('repair_requests').select('*');
-        if (reqData) setRequests(reqData);
+      const { data: reqData, error: rErr } = await supabase.from('repair_requests').select('*');
+      if (rErr) console.error("Requests fetch error:", rErr);
+      else if (reqData) setRequests(reqData);
 
-        const { data: itemsData } = await supabase.from('items').select('*, history:history_logs(*)');
-        if (itemsData) {
-          const sortedItems = itemsData.map(item => ({
-            ...item,
-            history: Array.isArray(item.history) ? item.history.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) : []
-          }));
-          setItems(sortedItems);
-        }
-      } catch (error) {
-        console.error("Safely caught DB error:", error);
-      } finally {
-        setIsLoading(false);
+      // FIXED: Removed the 'history:' alias which causes silent failures on some Supabase versions
+      const { data: itemsData, error: itemsError } = await supabase.from('items').select('*, history_logs(*)');
+      if (itemsError) console.error("Items fetch error:", itemsError);
+      else if (itemsData) {
+        const sortedItems = itemsData.map(item => ({
+          ...item,
+          history: Array.isArray(item.history_logs) ? item.history_logs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) : []
+        }));
+        setItems(sortedItems);
       }
+    } catch (error) {
+      console.error("Safely caught DB error:", error);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
 
+  // ONLY save session auth to localStorage
   useEffect(() => {
     if (userRole && userRole !== 'null') localStorage.setItem('wh_role', userRole); 
     if (currentUser && currentUser !== 'null') localStorage.setItem('wh_user', currentUser); 
@@ -109,7 +117,7 @@ export default function App() {
     };
   };
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center font-bold text-blue-600">Connecting to Database...</div>;
+  if (isLoading && items.length === 0) return <div className="min-h-screen flex items-center justify-center font-bold text-blue-600">Connecting to Live Database...</div>;
 
   if (!userRole || userRole === 'null') {
     return <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} addRequest={(req) => setRequests([...requests, req])} supabase={supabase} />;
@@ -183,7 +191,18 @@ export default function App() {
                 </div>
               </div>
             </div>
-            <button onClick={handleLogout} className="flex items-center gap-2 text-slate-500 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-200"><LogOut size={16} /> Logout</button>
+            
+            {/* NEW: Action Buttons (Refresh & Logout) */}
+            <div className="flex items-center gap-2">
+              {isInternal && (
+                <button onClick={loadData} className="flex items-center gap-2 text-slate-500 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-200">
+                  <RefreshCw size={16} className={isLoading ? "animate-spin text-blue-500" : ""} /> Sync Database
+                </button>
+              )}
+              <button onClick={handleLogout} className="flex items-center gap-2 text-slate-500 hover:text-red-600 bg-slate-50 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-200">
+                <LogOut size={16} /> Logout
+              </button>
+            </div>
           </div>
 
           {isInternal && (

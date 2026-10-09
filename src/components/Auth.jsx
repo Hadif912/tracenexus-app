@@ -21,7 +21,6 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
     if (authMode === 'login') {
       if (!credentials.username || !credentials.password) return setAuthError('Please fill in all fields');
 
-      // FIX: Auto-Create Admin Account in Supabase if it doesn't exist yet!
       if (credentials.username === 'admin' && credentials.password === 'admin123') {
         let adminUser = usersDB.find(u => u.username === 'admin');
         if (!adminUser) {
@@ -60,7 +59,11 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
 
     if (!usersDB.some(u => u.username === requestForm.phone)) {
       const newUser = { username: requestForm.phone, password: requestForm.password, role: 'customer', client_name: requestForm.clientName };
-      await supabase.from('users').insert([newUser]);
+      const { error: userErr } = await supabase.from('users').insert([newUser]);
+      if (userErr) {
+        console.error("User DB Error:", userErr);
+        return setAuthError("Database Error: Could not create user account.");
+      }
       setUsersDB([...usersDB, newUser]);
     }
 
@@ -73,9 +76,14 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
       description: requestForm.description
     };
     
-    await supabase.from('repair_requests').insert([newReq]);
+    // FIXED: Catch errors directly so we know if the database blocked the insert
+    const { error: reqErr } = await supabase.from('repair_requests').insert([newReq]);
+    if (reqErr) {
+      console.error("Request DB Error:", reqErr);
+      return setAuthError("Database Error: Could not submit request.");
+    }
+    
     addRequest(newReq);
-
     setAuthSuccess('Repair request sent! You can now log in using your phone number and password to track the status.');
     setAuthMode('login');
     setRequestForm({ itemName: '', itemBrand: '', clientName: '', phone: '', password: '', description: '' });
