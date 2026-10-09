@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import companyLogo from './assets/logo.png';
 import Auth from './components/Auth';
 import KanbanBoard from './components/KanbanBoard';
 import HistoryLog from './components/HistoryLog';
@@ -164,10 +165,8 @@ export default function App() {
             <div className="flex items-center gap-4">
               
               {/* COMPANY LOGO PLACEHOLDER */}
-              <div className="w-14 h-14 bg-white border-2 border-dashed border-slate-400 rounded-xl flex items-center justify-center shadow-sm overflow-hidden text-[10px] font-bold text-slate-400 text-center leading-tight">
-                {/* Replace this div with an actual <img> tag when ready: */}
-                {/* <img src="YOUR_LOGO_URL_HERE" alt="Company Logo" className="w-full h-full object-cover" /> */}
-                LOGO<br/>HERE
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-sm overflow-hidden flex-none bg-white">
+                <img src={companyLogo} alt="Company Logo" className="w-full h-full object-contain p-1" />
               </div>
 
               <div>

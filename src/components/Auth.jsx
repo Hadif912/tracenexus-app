@@ -1,3 +1,4 @@
+import companyLogo from '../assets/logo.png';
 import { useState } from 'react';
 import { Package, User, Lock, Phone, KeyRound, BadgeCheck, Eye, EyeOff, Save, Tag, AlignLeft, Send } from 'lucide-react';
 
@@ -108,9 +109,8 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
         <div className="text-center mb-8">
           
           {/* COMPANY LOGO PLACEHOLDER */}
-          <div className="w-20 h-20 bg-white border-2 border-dashed border-slate-400 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm overflow-hidden text-xs font-bold text-slate-400">
-            {/* Replace this div with an actual <img> tag when ready: */}
-            LOGO<br/>HERE
+          <div className="w-20 h-20 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm overflow-hidden flex-none bg-white">
+            <img src={companyLogo} alt="Company Logo" className="w-full h-full object-contain p-2" />
           </div>
 
           <h1 className="text-2xl font-extrabold text-slate-900 mb-2">{authMode === 'request' ? 'Request a Repair' : 'TraceNexus'}</h1>
