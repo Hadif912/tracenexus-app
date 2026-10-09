@@ -6,7 +6,6 @@ import HistoryLog from './components/HistoryLog';
 import CustomerDashboard from './components/CustomerDashboard';
 import ClientManagement from './components/ClientManagement';
 import RequestsManagement from './components/RequestsManagement';
-// FIXED: Added RefreshCw to the import list below
 import { Truck, Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw } from 'lucide-react';
 
 export default function App() {
@@ -38,17 +37,14 @@ export default function App() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const { data: usersData, error: uErr } = await supabase.from('users').select('*');
-      if (uErr) console.error("Users fetch error:", uErr);
-      else if (usersData) setUsersDB(usersData);
+      const { data: usersData } = await supabase.from('users').select('*');
+      if (usersData) setUsersDB(usersData);
 
-      const { data: reqData, error: rErr } = await supabase.from('repair_requests').select('*');
-      if (rErr) console.error("Requests fetch error:", rErr);
-      else if (reqData) setRequests(reqData);
+      const { data: reqData } = await supabase.from('repair_requests').select('*');
+      if (reqData) setRequests(reqData);
 
-      const { data: itemsData, error: itemsError } = await supabase.from('items').select('*, history_logs(*)');
-      if (itemsError) console.error("Items fetch error:", itemsError);
-      else if (itemsData) {
+      const { data: itemsData } = await supabase.from('items').select('*, history_logs(*)');
+      if (itemsData) {
         const sortedItems = itemsData.map(item => ({
           ...item,
           history: Array.isArray(item.history_logs) ? item.history_logs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) : []
@@ -62,9 +58,7 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     if (userRole && userRole !== 'null') localStorage.setItem('wh_role', userRole); 
@@ -95,26 +89,18 @@ export default function App() {
     setItems(items.map(item => item.id === itemId ? { ...item, ...updates } : item));
   };
 
+  // FIXED: Keeps images Uncompressed and Full Quality
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); 
     reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const scaleSize = 400 / img.width;
-        canvas.width = 400; canvas.height = img.height * scaleSize;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        setFormData({ ...formData, photo: canvas.toDataURL('image/jpeg', 0.6) });
-      };
+      setFormData({ ...formData, photo: event.target.result });
     };
   };
 
-  if (isLoading && items.length === 0) return <div className="min-h-screen flex items-center justify-center font-bold text-blue-600">Connecting to Live Database...</div>;
+  if (isLoading && items.length === 0) return <div className="min-h-screen bg-slate-300 flex items-center justify-center font-bold text-slate-700">Connecting to Database...</div>;
 
   if (!userRole || userRole === 'null') {
     return <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} addRequest={(req) => setRequests([...requests, req])} supabase={supabase} />;
@@ -172,61 +158,61 @@ export default function App() {
   const filteredClients = customerList.filter(c => c.username.includes(formData.clientPhone) && (c.client_name || '').toLowerCase().includes(formData.clientName.toLowerCase()));
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-10 text-left font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-300 p-6 md:p-10 text-left font-sans text-slate-800">
       <div className="max-w-[1400px] mx-auto">
-        <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-slate-100 p-6 md:p-8 mb-8">
+        <div className="bg-slate-100 rounded-2xl shadow-md border border-slate-300 p-6 md:p-8 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-2">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-md shadow-blue-200"><Truck size={24} /></div>
+              <div className="w-12 h-12 bg-slate-800 text-slate-100 rounded-xl flex items-center justify-center shadow-md shadow-slate-400"><Truck size={24} /></div>
               <div>
                 <h1 className="text-2xl font-extrabold text-slate-900 m-0 tracking-tight">TraceNexus Dashboard</h1>
                 <div className="flex items-center gap-3 mt-1.5">
-                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide flex items-center gap-1.5 uppercase ${isAdmin ? 'bg-blue-100 text-blue-700' : userRole === 'staff' ? 'bg-sky-100 text-sky-700' : 'bg-slate-100 text-slate-600'}`}>
+                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide flex items-center gap-1.5 uppercase ${isAdmin ? 'bg-slate-300 text-slate-800' : userRole === 'staff' ? 'bg-slate-200 text-slate-700' : 'bg-slate-200 text-slate-600'}`}>
                     {isAdmin ? <><Shield size={12}/> Admin</> : userRole === 'staff' ? <><Activity size={12}/> Staff</> : <><User size={12}/> Client</>}
                   </span>
-                  <span className="text-slate-500 text-sm font-medium">Session: <b className="text-slate-800">{currentUser}</b></span>
+                  <span className="text-slate-600 text-sm font-medium">Session: <b className="text-slate-900">{currentUser}</b></span>
                 </div>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
               {isInternal && (
-                <button onClick={loadData} className="flex items-center gap-2 text-slate-500 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-200">
-                  <RefreshCw size={16} className={isLoading ? "animate-spin text-blue-500" : ""} /> Sync Database
+                <button onClick={loadData} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-300">
+                  <RefreshCw size={16} className={isLoading ? "animate-spin text-slate-800" : ""} /> Sync Database
                 </button>
               )}
-              <button onClick={handleLogout} className="flex items-center gap-2 text-slate-500 hover:text-red-600 bg-slate-50 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-200">
+              <button onClick={handleLogout} className="flex items-center gap-2 text-slate-600 hover:text-slate-100 hover:bg-slate-800 bg-slate-200 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-300">
                 <LogOut size={16} /> Logout
               </button>
             </div>
           </div>
 
           {isInternal && (
-            <div className="flex flex-col gap-6 border-t border-slate-100 pt-6 mt-6">
+            <div className="flex flex-col gap-6 border-t border-slate-300 pt-6 mt-6">
               {activeTab === 'board' && (
-                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm relative z-40">
-                  <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                    {editingItem ? <Edit2 size={18} className="text-blue-500"/> : <Plus size={18} className="text-blue-600"/>} {editingItem ? 'Edit Job' : 'Create New Repair Job'}
+                <div className="bg-slate-200 p-5 rounded-2xl border border-slate-300 shadow-sm relative z-40">
+                  <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    {editingItem ? <Edit2 size={18} className="text-slate-600"/> : <Plus size={18} className="text-slate-700"/>} {editingItem ? 'Edit Job' : 'Create New Repair Job'}
                   </h3>
                   <form onSubmit={handleReceiveItem} className="flex flex-col gap-4 w-full">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" required/></div>
-                      <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" /></div>
+                      <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm" required/></div>
+                      <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm" /></div>
                       
                       <div className="md:col-span-2 relative" ref={dropdownRef}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Client Name" value={formData.clientName} onChange={(e) => { setFormData({...formData, clientName: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" autoComplete="off"/></div>
-                          <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Client Phone" value={formData.clientPhone} onChange={(e) => { setFormData({...formData, clientPhone: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 bg-white text-sm" required autoComplete="off"/></div>
+                          <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Client Name" value={formData.clientName} onChange={(e) => { setFormData({...formData, clientName: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm" autoComplete="off"/></div>
+                          <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Client Phone" value={formData.clientPhone} onChange={(e) => { setFormData({...formData, clientPhone: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm" required autoComplete="off"/></div>
                         </div>
 
                         {showClientDropdown && (
-                          <div className="absolute z-50 top-full left-0 w-full mt-2 bg-white border border-slate-200 shadow-[0_10px_40px_rgb(0,0,0,0.08)] rounded-xl max-h-72 overflow-y-auto">
+                          <div className="absolute z-50 top-full left-0 w-full mt-2 bg-slate-50 border border-slate-300 shadow-[0_10px_40px_rgb(0,0,0,0.15)] rounded-xl max-h-72 overflow-y-auto">
                             {filteredClients.length > 0 && (
                               <div className="p-2 flex flex-col gap-1">
-                                <div className="px-3 py-2 text-[10px] font-bold uppercase text-slate-400">Existing Clients</div>
+                                <div className="px-3 py-2 text-[10px] font-bold uppercase text-slate-500">Existing Clients</div>
                                 {filteredClients.map(client => (
-                                  <button key={client.username} type="button" onClick={() => { setFormData(prev => ({ ...prev, clientName: client.client_name || '', clientPhone: client.username })); setShowClientDropdown(false); }} className="flex justify-between items-center w-full px-3 py-2.5 hover:bg-blue-50 rounded-lg text-left">
-                                    <span className="font-semibold text-slate-700 text-sm flex items-center gap-2"><User size={14} className="text-blue-500"/> {client.client_name || 'Unknown'}</span>
+                                  <button key={client.username} type="button" onClick={() => { setFormData(prev => ({ ...prev, clientName: client.client_name || '', clientPhone: client.username })); setShowClientDropdown(false); }} className="flex justify-between items-center w-full px-3 py-2.5 hover:bg-slate-200 rounded-lg text-left">
+                                    <span className="font-semibold text-slate-800 text-sm flex items-center gap-2"><User size={14} className="text-slate-600"/> {client.client_name || 'Unknown'}</span>
                                     <span className="font-mono text-xs text-slate-500 flex items-center gap-1"><Phone size={12}/> {client.username}</span>
                                   </button>
                                 ))}
@@ -237,17 +223,17 @@ export default function App() {
                       </div>
 
                       <div className="relative md:col-span-2 flex flex-col gap-3">
-                        <div className="relative"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl bg-white text-sm" /></div>
+                        <div className="relative"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl bg-slate-50 text-sm" /></div>
                         
                         <div className="flex items-center gap-4">
-                          <label className="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg cursor-pointer hover:bg-slate-50 text-sm font-semibold shadow-sm">
-                            <ImagePlus size={16} className="text-blue-500" /> {formData.photo ? 'Change Photo' : 'Attach Device Photo'}
+                          <label className="flex items-center gap-2 bg-slate-100 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg cursor-pointer hover:bg-slate-300 transition-colors text-sm font-semibold shadow-sm">
+                            <ImagePlus size={16} className="text-slate-600" /> {formData.photo ? 'Change Photo' : 'Attach Device Photo'}
                             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                           </label>
                           {formData.photo && (
-                            <div className="relative border border-slate-200 rounded-lg p-1">
+                            <div className="relative border border-slate-300 rounded-lg p-1 bg-slate-100">
                               <img src={formData.photo} alt="Preview" className="h-10 w-10 object-cover rounded-md" />
-                              <button type="button" onClick={() => setFormData({...formData, photo: null})} className="absolute -top-2 -right-2 bg-red-100 text-red-600 rounded-full p-0.5"><X size={12}/></button>
+                              <button type="button" onClick={() => setFormData({...formData, photo: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12}/></button>
                             </div>
                           )}
                         </div>
@@ -255,20 +241,20 @@ export default function App() {
                     </div>
 
                     <div className="flex gap-3 mt-2 justify-end">
-                      {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null }) }} className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
-                      <button type="submit" className={`bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md shadow-blue-200/50 text-sm`}>{editingItem ? 'Save Updates' : 'Add to Pipeline'}</button>
+                      {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null }) }} className="bg-slate-300 hover:bg-slate-400 text-slate-800 border border-slate-400 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
+                      <button type="submit" className={`bg-slate-800 hover:bg-slate-900 text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md shadow-slate-400/50 text-sm`}>{editingItem ? 'Save Updates' : 'Add to Pipeline'}</button>
                     </div>
                   </form>
                 </div>
               )}
               
-              <div className="flex gap-2 w-full bg-slate-100/50 p-1 rounded-lg self-start overflow-x-auto relative z-30">
-                <button onClick={() => setActiveTab('board')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'board' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}><LayoutDashboard size={16} /> Pipeline View</button>
-                <button onClick={() => setActiveTab('history')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'history' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}><History size={16} /> Audit Explorer</button>
-                {isAdmin && <button onClick={() => setActiveTab('clients')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'clients' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}><Users size={16} /> Client Directory</button>}
-                <button onClick={() => setActiveTab('requests')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'requests' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}>
+              <div className="flex gap-2 w-full bg-slate-200/80 p-1 rounded-lg self-start overflow-x-auto relative z-30">
+                <button onClick={() => setActiveTab('board')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'board' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><LayoutDashboard size={16} /> Pipeline View</button>
+                <button onClick={() => setActiveTab('history')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'history' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><History size={16} /> Audit Explorer</button>
+                {isAdmin && <button onClick={() => setActiveTab('clients')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'clients' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><Users size={16} /> Client Directory</button>}
+                <button onClick={() => setActiveTab('requests')} className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'requests' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}>
                   <Inbox size={16} /> Incoming Requests 
-                  {requests.length > 0 && <span className="ml-1.5 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{requests.length}</span>}
+                  {requests.length > 0 && <span className="ml-1.5 bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded-full">{requests.length}</span>}
                 </button>
               </div>
             </div>

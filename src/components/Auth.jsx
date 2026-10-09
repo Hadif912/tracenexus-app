@@ -60,10 +60,7 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
     if (!usersDB.some(u => u.username === requestForm.phone)) {
       const newUser = { username: requestForm.phone, password: requestForm.password, role: 'customer', client_name: requestForm.clientName };
       const { error: userErr } = await supabase.from('users').insert([newUser]);
-      if (userErr) {
-        console.error("User DB Error:", userErr);
-        return setAuthError("Database Error: Could not create user account.");
-      }
+      if (userErr) return setAuthError("Database Error: Could not create user account.");
       setUsersDB([...usersDB, newUser]);
     }
 
@@ -76,12 +73,8 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
       description: requestForm.description
     };
     
-    // FIXED: Catch errors directly so we know if the database blocked the insert
     const { error: reqErr } = await supabase.from('repair_requests').insert([newReq]);
-    if (reqErr) {
-      console.error("Request DB Error:", reqErr);
-      return setAuthError("Database Error: Could not submit request.");
-    }
+    if (reqErr) return setAuthError("Database Error: Could not submit request.");
     
     addRequest(newReq);
     setAuthSuccess('Repair request sent! You can now log in using your phone number and password to track the status.');
@@ -103,13 +96,13 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
 
   if (pendingPasswordChange) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50"><div className="bg-white p-10 rounded-2xl max-w-md w-full shadow-lg">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-300"><div className="bg-slate-100 p-10 rounded-2xl max-w-md w-full shadow-lg border border-slate-300">
         <h1 className="text-2xl font-extrabold text-slate-900 mb-6 text-center">Secure Your Account</h1>
-        {authError && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm text-center">{authError}</div>}
+        {authError && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm text-center">{authError}</div>}
         <form onSubmit={handlePasswordUpdate} className="space-y-4">
-          <input type="password" placeholder="New Password" value={passwordForm.newPass} onChange={(e) => setPasswordForm({...passwordForm, newPass: e.target.value})} className="w-full p-3 border rounded-xl" required/>
-          <input type="password" placeholder="Confirm Password" value={passwordForm.confirmPass} onChange={(e) => setPasswordForm({...passwordForm, confirmPass: e.target.value})} className="w-full p-3 border rounded-xl" required/>
-          <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Save & Continue</button>
+          <input type="password" placeholder="New Password" value={passwordForm.newPass} onChange={(e) => setPasswordForm({...passwordForm, newPass: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl bg-slate-50" required/>
+          <input type="password" placeholder="Confirm Password" value={passwordForm.confirmPass} onChange={(e) => setPasswordForm({...passwordForm, confirmPass: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl bg-slate-50" required/>
+          <button type="submit" className="w-full bg-slate-800 text-slate-100 py-3 rounded-xl font-bold">Save & Continue</button>
         </form>
       </div></div>
     );
@@ -117,43 +110,43 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
 
   if (authMode === 'request') {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white p-10 rounded-2xl shadow-xl max-w-lg w-full">
+      <div className="min-h-screen bg-slate-300 flex items-center justify-center p-4">
+        <div className="bg-slate-100 p-10 rounded-2xl shadow-xl max-w-lg w-full border border-slate-300">
           <div className="text-center mb-8"><h1 className="text-2xl font-extrabold text-slate-900 mb-2">Request a Repair</h1></div>
-          {authError && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{authError}</div>}
+          {authError && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">{authError}</div>}
           <form onSubmit={handleRequestSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Device Name" value={requestForm.itemName} onChange={(e) => setRequestForm({...requestForm, itemName: e.target.value})} className="w-full pl-11 p-3 border rounded-xl" required/></div>
-              <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Brand" value={requestForm.itemBrand} onChange={(e) => setRequestForm({...requestForm, itemBrand: e.target.value})} className="w-full pl-11 p-3 border rounded-xl"/></div>
-              <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Full Name" value={requestForm.clientName} onChange={(e) => setRequestForm({...requestForm, clientName: e.target.value})} className="w-full pl-11 p-3 border rounded-xl" required/></div>
-              <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Phone Number" value={requestForm.phone} onChange={(e) => setRequestForm({...requestForm, phone: e.target.value})} className="w-full pl-11 p-3 border rounded-xl" required/></div>
+              <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Device Name" value={requestForm.itemName} onChange={(e) => setRequestForm({...requestForm, itemName: e.target.value})} className="w-full pl-11 p-3 border border-slate-300 bg-slate-50 rounded-xl" required/></div>
+              <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Brand" value={requestForm.itemBrand} onChange={(e) => setRequestForm({...requestForm, itemBrand: e.target.value})} className="w-full pl-11 p-3 border border-slate-300 bg-slate-50 rounded-xl"/></div>
+              <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Full Name" value={requestForm.clientName} onChange={(e) => setRequestForm({...requestForm, clientName: e.target.value})} className="w-full pl-11 p-3 border border-slate-300 bg-slate-50 rounded-xl" required/></div>
+              <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Phone Number" value={requestForm.phone} onChange={(e) => setRequestForm({...requestForm, phone: e.target.value})} className="w-full pl-11 p-3 border border-slate-300 bg-slate-50 rounded-xl" required/></div>
               <div className="relative md:col-span-2">
-                <Lock size={16} className="absolute left-4 top-3.5 text-slate-400" />
-                <input type={showRequestPassword ? "text" : "password"} placeholder="Create Password to Track Request" value={requestForm.password} onChange={(e) => setRequestForm({...requestForm, password: e.target.value})} className="w-full pl-11 pr-12 p-3 border rounded-xl" required/>
-                <button type="button" onClick={() => setShowRequestPassword(!showRequestPassword)} className="absolute right-4 top-3.5 text-slate-400"><Eye size={16}/></button>
+                <Lock size={16} className="absolute left-4 top-3.5 text-slate-500" />
+                <input type={showRequestPassword ? "text" : "password"} placeholder="Create Password to Track Request" value={requestForm.password} onChange={(e) => setRequestForm({...requestForm, password: e.target.value})} className="w-full pl-11 pr-12 p-3 border border-slate-300 bg-slate-50 rounded-xl" required/>
+                <button type="button" onClick={() => setShowRequestPassword(!showRequestPassword)} className="absolute right-4 top-3.5 text-slate-500"><Eye size={16}/></button>
               </div>
-              <div className="relative md:col-span-2"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Describe issue..." value={requestForm.description} onChange={(e) => setRequestForm({...requestForm, description: e.target.value})} className="w-full pl-11 p-3 border rounded-xl" /></div>
+              <div className="relative md:col-span-2"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Describe issue..." value={requestForm.description} onChange={(e) => setRequestForm({...requestForm, description: e.target.value})} className="w-full pl-11 p-3 border border-slate-300 bg-slate-50 rounded-xl" /></div>
             </div>
-            <button type="submit" className="w-full bg-blue-600 text-white p-3.5 rounded-xl font-bold mt-4"><Send size={18} className="inline mr-2"/> Send Request & Register</button>
+            <button type="submit" className="w-full bg-slate-800 text-slate-100 hover:bg-slate-900 p-3.5 rounded-xl font-bold mt-4 transition-colors"><Send size={18} className="inline mr-2"/> Send Request & Register</button>
           </form>
-          <button onClick={() => setAuthMode('login')} className="mt-6 w-full text-center text-sm font-semibold text-slate-500">Cancel & Back to Login</button>
+          <button onClick={() => setAuthMode('login')} className="mt-6 w-full text-center text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">Cancel & Back to Login</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="bg-white p-10 rounded-2xl shadow-xl max-w-md w-full">
+    <div className="min-h-screen bg-slate-300 flex items-center justify-center p-4">
+      <div className="bg-slate-100 p-10 rounded-2xl shadow-xl max-w-md w-full border border-slate-300">
         <div className="text-center mb-8"><h1 className="text-2xl font-extrabold text-slate-900 mb-2">TraceNexus</h1></div>
-        {authError && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{authError}</div>}
-        {authSuccess && <div className="mb-4 p-3 bg-sky-50 text-sky-700 rounded-lg text-sm">{authSuccess}</div>}
+        {authError && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">{authError}</div>}
+        {authSuccess && <div className="mb-4 p-3 bg-slate-200 text-slate-800 rounded-lg text-sm font-semibold">{authSuccess}</div>}
         <form onSubmit={handleAuth} className="space-y-4">
-          <div className="relative"><User size={18} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" value={credentials.username} onChange={(e) => setCredentials({...credentials, username: e.target.value})} className="w-full pl-12 p-3 border rounded-xl" placeholder="Phone / Username" /></div>
-          <div className="relative"><Lock size={18} className="absolute left-4 top-3.5 text-slate-400" /><input type={showLoginPassword ? "text" : "password"} value={credentials.password} onChange={(e) => setCredentials({...credentials, password: e.target.value})} className="w-full pl-12 pr-12 p-3 border rounded-xl" placeholder="Password" /><button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="absolute right-4 top-3.5 text-slate-400"><Eye size={16}/></button></div>
-          <button type="submit" className="w-full bg-blue-600 text-white p-3.5 rounded-xl font-bold">Login</button>
+          <div className="relative"><User size={18} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" value={credentials.username} onChange={(e) => setCredentials({...credentials, username: e.target.value})} className="w-full pl-12 p-3 border border-slate-300 bg-slate-50 rounded-xl" placeholder="Phone / Username" /></div>
+          <div className="relative"><Lock size={18} className="absolute left-4 top-3.5 text-slate-500" /><input type={showLoginPassword ? "text" : "password"} value={credentials.password} onChange={(e) => setCredentials({...credentials, password: e.target.value})} className="w-full pl-12 pr-12 p-3 border border-slate-300 bg-slate-50 rounded-xl" placeholder="Password" /><button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="absolute right-4 top-3.5 text-slate-500"><Eye size={16}/></button></div>
+          <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-slate-100 p-3.5 rounded-xl font-bold transition-colors">Login</button>
         </form>
-        <button onClick={() => setAuthMode('request')} className="w-full mt-6 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold transition-colors">Want to repair an item? Submit request</button>
+        <button onClick={() => setAuthMode('request')} className="w-full mt-6 bg-slate-300 hover:bg-slate-400 text-slate-800 py-3 rounded-xl font-bold transition-colors">Want to repair an item? Submit request</button>
       </div>
     </div>
   );
