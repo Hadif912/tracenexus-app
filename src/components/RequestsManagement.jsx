@@ -3,11 +3,11 @@ import { CheckCircle2, XCircle, Clock, User, Phone, Package, Tag, AlignLeft } fr
 export default function RequestsManagement({ requests, setRequests, items, setItems, usersDB, setUsersDB }) {
   
   const handleAccept = (req) => {
-    // 1. Auto-register client if they don't exist
+    // 1. Auto-register client if they don't exist (Fallback if it didn't trigger during submission)
     if (!usersDB.some(u => u.username === req.phone)) {
       setUsersDB([...usersDB, { 
         username: req.phone, 
-        password: 'Abc@123', 
+        password: req.password || 'Abc@123', // NEW: Uses the password submitted by the user
         role: 'customer', 
         clientName: req.clientName || 'Unknown' 
       }]);

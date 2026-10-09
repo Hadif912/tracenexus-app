@@ -9,11 +9,14 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [passwordForm, setPasswordForm] = useState({ newPass: '', confirmPass: '' });
-  const [requestForm, setRequestForm] = useState({ itemName: '', itemBrand: '', clientName: '', phone: '', description: '' });
+  
+  // NEW: Added password to the request form state
+  const [requestForm, setRequestForm] = useState({ itemName: '', itemBrand: '', clientName: '', phone: '', password: '', description: '' });
   
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showRequestPassword, setShowRequestPassword] = useState(false); // NEW: toggle for request form
 
   const handleAuth = (e) => {
     e.preventDefault();
@@ -55,8 +58,20 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   const handleRequestSubmit = (e) => {
     e.preventDefault();
     setAuthError(''); setAuthSuccess('');
-    if (!requestForm.itemName || !requestForm.phone || !requestForm.clientName) {
-      return setAuthError('Item Name, Client Name, and Phone are required.');
+    
+    // NEW: Check that password is provided
+    if (!requestForm.itemName || !requestForm.phone || !requestForm.clientName || !requestForm.password) {
+      return setAuthError('Item Name, Client Name, Phone, and Password are required.');
+    }
+
+    // NEW: Auto-register the customer immediately so they can log in right away
+    if (!usersDB.some(u => u.username === requestForm.phone)) {
+      setUsersDB([...usersDB, { 
+        username: requestForm.phone, 
+        password: requestForm.password, 
+        role: 'customer', 
+        clientName: requestForm.clientName 
+      }]);
     }
 
     addRequest({
@@ -65,9 +80,10 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
       timestamp: new Date().toLocaleString()
     });
 
-    setAuthSuccess('Repair request sent to admins! You will be notified shortly.');
+    setAuthSuccess('Repair request sent! You can now log in using your phone number and password to track the status.');
     setAuthMode('login');
-    setRequestForm({ itemName: '', itemBrand: '', clientName: '', phone: '', description: '' });
+    setRequestForm({ itemName: '', itemBrand: '', clientName: '', phone: '', password: '', description: '' });
+    setShowRequestPassword(false);
   };
 
   const finalizeLogin = (user) => {
@@ -138,13 +154,23 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
               <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Brand" value={requestForm.itemBrand} onChange={(e) => setRequestForm({...requestForm, itemBrand: e.target.value})} className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 text-sm" /></div>
               <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Your Full Name" value={requestForm.clientName} onChange={(e) => setRequestForm({...requestForm, clientName: e.target.value})} className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 text-sm" required/></div>
               <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Phone Number" value={requestForm.phone} onChange={(e) => setRequestForm({...requestForm, phone: e.target.value})} className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 text-sm" required/></div>
+              
+              {/* NEW: Password Field for tracking account */}
+              <div className="relative md:col-span-2">
+                <Lock size={16} className="absolute left-4 top-3.5 text-slate-400" />
+                <input type={showRequestPassword ? "text" : "password"} placeholder="Create a Password for tracking" value={requestForm.password} onChange={(e) => setRequestForm({...requestForm, password: e.target.value})} className="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 text-sm" required/>
+                <button type="button" onClick={() => setShowRequestPassword(!showRequestPassword)} className="absolute right-4 top-3.5 text-slate-400 hover:text-blue-600">
+                  {showRequestPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+
               <div className="relative md:col-span-2"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-400" /><input type="text" placeholder="Describe the problem..." value={requestForm.description} onChange={(e) => setRequestForm({...requestForm, description: e.target.value})} className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 text-sm" /></div>
             </div>
-            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-semibold mt-4 shadow-md flex items-center justify-center gap-2 transition-all"><Send size={18}/> Send Request</button>
+            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-semibold mt-4 shadow-md flex items-center justify-center gap-2 transition-all"><Send size={18}/> Send Request & Register</button>
           </form>
 
           <div className="mt-8 text-center text-sm text-slate-500 border-t border-slate-100 pt-6">
-            <button onClick={() => { setAuthMode('login'); setAuthError(''); setAuthSuccess(''); }} className="text-slate-600 hover:text-slate-800 font-semibold transition-colors">
+            <button onClick={() => { setAuthMode('login'); setAuthError(''); setAuthSuccess(''); setShowRequestPassword(false); }} className="text-slate-600 hover:text-slate-800 font-semibold transition-colors">
               Cancel & Back to Login
             </button>
           </div>
