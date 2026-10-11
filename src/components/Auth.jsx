@@ -5,7 +5,8 @@ import slide1 from '../assets/hero1.png';
 import slide2 from '../assets/hero2.png';
 import slide3 from '../assets/hero3.png';
 
-export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser, addRequest, supabase, t }) {
+// Notice `onViewReviews` is now received as a prop
+export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser, addRequest, supabase, t, onViewReviews }) {
   const [authMode, setAuthMode] = useState('login'); 
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
@@ -198,18 +199,20 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
               </form>
             )}
 
-            {/* NEW: Informative Footer Section */}
+            {/* NEW: Clickable Informative Footer Section */}
             <div className={`mt-10 pt-6 border-t ${t.border} flex flex-col gap-3 text-xs text-slate-500 font-medium`}>
-              <div className="flex items-center gap-2">
+              <a href="https://www.google.com/maps/place/KRC+ELECTRONIC/@3.0435766,101.5981766,17.44z/data=!4m14!1m7!3m6!1s0x31cc4cb0942a27c7:0x280092f3b1e8a276!2sKRC+ELECTRONIC!8m2!3d3.0434607!4d101.6003354!16s%2Fg%2F11bbt69cjm!3m5!1s0x31cc4cb0942a27c7:0x280092f3b1e8a276!8m2!3d3.0434607!4d101.6003354!16s%2Fg%2F11bbt69cjm?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noreferrer" className={`flex items-center gap-2 hover:${t.text} transition-colors cursor-pointer w-fit`}>
                 <MapPin size={14} className="text-slate-400" />
-                <span>KRC Electronic, Cheras, Selangor, Malaysia</span>
-              </div>
-              <div className="flex items-center gap-2">
+                <span className="underline underline-offset-2 decoration-slate-300">KRC Electronic, Cheras, Selangor, Malaysia</span>
+              </a>
+              
+              <button type="button" onClick={onViewReviews} className={`flex items-center gap-2 hover:${t.text} transition-colors cursor-pointer w-fit text-left`}>
                 <div className="flex">
                   {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#fbbf24" className="text-amber-400" />)}
                 </div>
-                <span>4.9/5 Average Rating from Verified Customers</span>
-              </div>
+                <span className="underline underline-offset-2 decoration-slate-300">4.9/5 Average Rating. Click to view reviews.</span>
+              </button>
+              
               <div className="mt-2 text-slate-400">
                 &copy; {new Date().getFullYear()} Track & Trace System. Developed by Hadif (KYPD Cohort 8).
               </div>

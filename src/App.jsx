@@ -38,6 +38,9 @@ export default function App() {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // NEW: State to manage the Public Reviews view without logging in
+  const [showPublicReviews, setShowPublicReviews] = useState(false);
+  
   const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' });
   const [editingItem, setEditingItem] = useState(null);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
@@ -193,8 +196,18 @@ export default function App() {
         </button>
       </div>
 
-      {(!userRole || userRole === 'null') ? (
-        <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} addRequest={(req) => setRequests([...requests, req])} supabase={supabase} t={t} />
+      {/* RENDER PUBLIC REVIEWS VIEW OR LOGIN */}
+      {showPublicReviews ? (
+        <div className="p-4 md:p-8 max-w-6xl mx-auto w-full pt-20 md:pt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="mb-6 flex justify-start">
+             <button onClick={() => setShowPublicReviews(false)} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold bg-white/80 backdrop-blur-md border ${t.border} ${t.text} hover:bg-white shadow-sm transition-all`}>
+               &larr; Back to Login
+             </button>
+          </div>
+          <Reviews usersDB={usersDB} currentUser={null} userRole="guest" supabase={supabase} t={t} items={[]} />
+        </div>
+      ) : (!userRole || userRole === 'null') ? (
+        <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} addRequest={(req) => setRequests([...requests, req])} supabase={supabase} t={t} onViewReviews={() => setShowPublicReviews(true)} />
       ) : (
         <div className="p-2 md:p-4 text-left w-full max-w-[1600px] mx-auto">
           
