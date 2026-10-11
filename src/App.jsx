@@ -232,27 +232,31 @@ export default function App() {
               </div>
             </div>
 
-            {/* TAB BAR FOR EVERYONE - UPDATED FOR WRAPPING */}
-            <div className={`flex flex-wrap gap-2 w-full bg-white/50 p-2 rounded-xl self-start relative z-30 border ${t.border} mt-6`}>
+            {/* SYMMETRICAL TAB BAR GRID */}
+            <div className={`grid gap-2 w-full bg-white/50 p-1.5 rounded-xl relative z-30 border ${t.border} mt-6 ${
+              isAdmin ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6' : 
+              isInternal ? 'grid-cols-2 lg:grid-cols-4' : 
+              'grid-cols-2'
+            }`}>
               {isInternal ? (
                 <>
-                  <button onClick={() => setActiveTab('board')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><LayoutDashboard size={16} /> Pipeline View</button>
-                  <button onClick={() => setActiveTab('history')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'history' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><History size={16} /> Audit Explorer</button>
+                  <button onClick={() => setActiveTab('board')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><LayoutDashboard size={16} className="shrink-0" /> <span className="truncate">Pipeline View</span></button>
+                  <button onClick={() => setActiveTab('history')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'history' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><History size={16} className="shrink-0" /> <span className="truncate">Audit Explorer</span></button>
                   {isAdmin && (
                     <>
-                      <button onClick={() => setActiveTab('clients')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'clients' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Users size={16} /> Client Directory</button>
-                      <button onClick={() => setActiveTab('engineers')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'engineers' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Briefcase size={16} /> Staff Directory</button>
+                      <button onClick={() => setActiveTab('clients')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'clients' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Users size={16} className="shrink-0" /> <span className="truncate">Client Directory</span></button>
+                      <button onClick={() => setActiveTab('engineers')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'engineers' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Briefcase size={16} className="shrink-0" /> <span className="truncate">Staff Directory</span></button>
                     </>
                   )}
-                  <button onClick={() => setActiveTab('requests')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'requests' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}>
-                    <Inbox size={16} /> Incoming Requests 
-                    {requests.length > 0 && <span className={`ml-1.5 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full`}>{requests.length}</span>}
+                  <button onClick={() => setActiveTab('requests')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'requests' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}>
+                    <Inbox size={16} className="shrink-0" /> <span className="truncate">Requests</span> 
+                    {requests.length > 0 && <span className={`shrink-0 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full`}>{requests.length}</span>}
                   </button>
                 </>
               ) : (
-                <button onClick={() => setActiveTab('board')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Package size={16} /> My Repairs</button>
+                <button onClick={() => setActiveTab('board')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Package size={16} className="shrink-0" /> <span className="truncate">My Repairs</span></button>
               )}
-              <button onClick={() => setActiveTab('reviews')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'reviews' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Star size={16} /> Reviews</button>
+              <button onClick={() => setActiveTab('reviews')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'reviews' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Star size={16} className="shrink-0" /> <span className="truncate">Reviews</span></button>
             </div>
           </div>
 
