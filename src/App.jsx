@@ -8,9 +8,9 @@ import CustomerDashboard from './components/CustomerDashboard';
 import ClientManagement from './components/ClientManagement';
 import RequestsManagement from './components/RequestsManagement';
 import EngineerManagement from './components/EngineerManagement';
-import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench, Briefcase, Palette } from 'lucide-react';
+import Reviews from './components/Reviews';
+import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench, Briefcase, Palette, Star } from 'lucide-react';
 
-// GLOBAL THEMES DICTIONARY
 const THEMES = {
   slate: { bg: 'bg-slate-300', card: 'bg-slate-100', btn: 'bg-slate-800', hover: 'hover:bg-slate-900', text: 'text-slate-900', border: 'border-slate-300', dot: 'bg-slate-500' },
   blue: { bg: 'bg-sky-200', card: 'bg-sky-50', btn: 'bg-sky-600', hover: 'hover:bg-sky-700', text: 'text-sky-900', border: 'border-sky-200', dot: 'bg-sky-500' },
@@ -19,7 +19,6 @@ const THEMES = {
 };
 
 export default function App() {
-  // THEME STATE
   const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('krc_theme') || 'slate');
   const [showThemes, setShowThemes] = useState(false);
   const t = THEMES[activeTheme];
@@ -75,7 +74,6 @@ export default function App() {
 
   useEffect(() => { loadData(); }, []);
 
-  // Save Theme to LocalStorage
   useEffect(() => {
     localStorage.setItem('krc_theme', activeTheme);
   }, [activeTheme]);
@@ -164,6 +162,7 @@ export default function App() {
     if (!isInternal) return;
     setEditingItem(item);
     setFormData({ itemName: item.name || '', itemBrand: item.brand || '', clientPhone: item.owner || '', clientName: getClientName(item.owner) || '', description: item.description || '', photo: null, assigned_engineer: item.assigned_engineer || '' });
+    setActiveTab('board');
   };
 
   const filteredClients = customerList.filter(c => c.username.includes(formData.clientPhone) && (c.client_name || '').toLowerCase().includes(formData.clientName.toLowerCase()));
@@ -173,7 +172,7 @@ export default function App() {
   return (
     <div className={`min-h-screen ${t.bg} font-sans text-slate-800 transition-colors duration-500`}>
       
-      {/* GLOBAL UN-FOLDABLE THEME SWITCHER */}
+      {/* GLOBAL THEME SWITCHER */}
       <div className="fixed top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 z-[100]">
         <div className={`flex items-center gap-2 bg-white/70 backdrop-blur-md rounded-full shadow-sm border border-white/50 transition-all duration-300 ease-in-out ${showThemes ? 'max-w-[200px] px-3 py-2 opacity-100 translate-x-0' : 'max-w-0 opacity-0 p-0 border-transparent translate-x-4 pointer-events-none'}`}>
           {Object.keys(THEMES).map(themeName => (
@@ -195,19 +194,17 @@ export default function App() {
       </div>
 
       {(!userRole || userRole === 'null') ? (
-        // RENDER LOGIN PAGE
         <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} addRequest={(req) => setRequests([...requests, req])} supabase={supabase} t={t} />
       ) : (
-        // RENDER DASHBOARD
-        <div className="p-2 md:p-4 text-left w-full">
+        <div className="p-2 md:p-4 text-left w-full max-w-[1600px] mx-auto">
+          
+          {/* HEADER CARD */}
           <div className={`${t.card} rounded-2xl shadow-md border ${t.border} p-4 md:p-6 mb-6 transition-colors duration-500`}>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-2">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div className="flex items-center gap-4">
-                
                 <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-sm overflow-hidden flex-none bg-white">
                   <img src={companyLogo} alt="Company Logo" className="w-full h-full object-contain p-1" />
                 </div>
-
                 <div>
                   <h1 className={`text-2xl font-extrabold ${t.text} m-0 tracking-tight transition-colors duration-500`}>KRC Electronic Track & Trace Dashboard</h1>
                   <div className="flex items-center gap-3 mt-1.5">
@@ -235,77 +232,10 @@ export default function App() {
               </div>
             </div>
 
-            {isInternal && (
-              <div className={`flex flex-col gap-6 border-t ${t.border} pt-6 mt-6`}>
-                {activeTab === 'board' && (
-                  <div className={`bg-white/50 p-5 rounded-2xl border ${t.border} shadow-sm relative z-40`}>
-                    <h3 className={`font-bold ${t.text} mb-4 flex items-center gap-2`}>
-                      {editingItem ? <Edit2 size={18} className="opacity-70"/> : <Plus size={18} className="opacity-70"/>} {editingItem ? 'Edit Job' : 'Create New Repair Job'}
-                    </h3>
-                    <form onSubmit={handleReceiveItem} className="flex flex-col gap-4 w-full">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} required/></div>
-                        <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} /></div>
-                        
-                        <div className="md:col-span-2 relative" ref={dropdownRef}>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Client Name" value={formData.clientName} onChange={(e) => { setFormData({...formData, clientName: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} autoComplete="off"/></div>
-                            <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Client Phone" value={formData.clientPhone} onChange={(e) => { setFormData({...formData, clientPhone: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} required autoComplete="off"/></div>
-                          </div>
-
-                          {showClientDropdown && (
-                            <div className={`absolute z-50 top-full left-0 w-full mt-2 bg-white border ${t.border} shadow-[0_10px_40px_rgb(0,0,0,0.15)] rounded-xl max-h-72 overflow-y-auto`}>
-                              {filteredClients.length > 0 && (
-                                <div className="p-2 flex flex-col gap-1">
-                                  <div className="px-3 py-2 text-[10px] font-bold uppercase text-slate-500">Existing Clients</div>
-                                  {filteredClients.map(client => (
-                                    <button key={client.username} type="button" onClick={() => { setFormData(prev => ({ ...prev, clientName: client.client_name || '', clientPhone: client.username })); setShowClientDropdown(false); }} className="flex justify-between items-center w-full px-3 py-2.5 hover:bg-slate-100 rounded-lg text-left">
-                                      <span className="font-semibold text-slate-800 text-sm flex items-center gap-2"><User size={14} className="text-slate-600"/> {client.client_name || 'Unknown'}</span>
-                                      <span className="font-mono text-xs text-slate-500 flex items-center gap-1"><Phone size={12}/> {client.username}</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="relative md:col-span-2 flex flex-col gap-3">
-                          <div className="relative"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl bg-white text-sm`} /></div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="relative">
-                              <Wrench size={16} className="absolute left-4 top-3.5 text-slate-500" />
-                              <select value={formData.assigned_engineer || ''} onChange={(e) => setFormData({...formData, assigned_engineer: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm appearance-none cursor-pointer`}>
-                                <option value="">Assign Engineer (Optional)</option>
-                                {engineersList.map(eng => <option key={eng.username} value={eng.username}>{eng.client_name || eng.username}</option>)}
-                              </select>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <label className={`flex items-center gap-2 bg-white border ${t.border} text-slate-700 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-sm font-semibold shadow-sm w-full justify-center`}>
-                                <ImagePlus size={16} className="text-slate-600" /> {formData.photo ? 'Change Photo' : 'Attach Device Photo'}
-                                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                              </label>
-                              {formData.photo && (
-                                <div className={`relative border ${t.border} rounded-lg p-1 bg-white flex-none`}>
-                                  <img src={formData.photo} alt="Preview" className="h-10 w-10 object-cover rounded-md" />
-                                  <button type="button" onClick={() => setFormData({...formData, photo: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12}/></button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3 mt-2 justify-end">
-                        {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' }) }} className="bg-slate-300 hover:bg-slate-400 text-slate-800 border border-slate-400 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
-                        <button type="submit" className={`${t.btn} ${t.hover} text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md text-sm transition-colors`}>{editingItem ? 'Save Updates' : 'Add Item'}</button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-                
-                <div className={`flex gap-2 w-full bg-white/50 p-1.5 rounded-xl self-start overflow-x-auto relative z-30 flex-nowrap border ${t.border}`}>
+            {/* TAB BAR FOR EVERYONE */}
+            <div className={`flex gap-2 w-full bg-white/50 p-1.5 rounded-xl self-start overflow-x-auto relative z-30 flex-nowrap border ${t.border} mt-6`}>
+              {isInternal ? (
+                <>
                   <button onClick={() => setActiveTab('board')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><LayoutDashboard size={16} /> Pipeline View</button>
                   <button onClick={() => setActiveTab('history')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'history' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><History size={16} /> Audit Explorer</button>
                   {isAdmin && (
@@ -318,12 +248,87 @@ export default function App() {
                     <Inbox size={16} /> Incoming Requests 
                     {requests.length > 0 && <span className={`ml-1.5 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full`}>{requests.length}</span>}
                   </button>
-                </div>
-              </div>
-            )}
+                </>
+              ) : (
+                <button onClick={() => setActiveTab('board')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Package size={16} /> My Repairs</button>
+              )}
+              <button onClick={() => setActiveTab('reviews')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'reviews' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Star size={16} /> Reviews</button>
+            </div>
           </div>
 
-          {!isInternal ? (
+          {/* INTERNAL FORM - ONLY SHOWS ON BOARD TAB */}
+          {isInternal && activeTab === 'board' && (
+            <div className={`bg-white/50 p-5 rounded-2xl border ${t.border} shadow-sm relative z-40 mb-6`}>
+              <h3 className={`font-bold ${t.text} mb-4 flex items-center gap-2`}>
+                {editingItem ? <Edit2 size={18} className="opacity-70"/> : <Plus size={18} className="opacity-70"/>} {editingItem ? 'Edit Job' : 'Create New Repair Job'}
+              </h3>
+              <form onSubmit={handleReceiveItem} className="flex flex-col gap-4 w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} required/></div>
+                  <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} /></div>
+                  
+                  <div className="md:col-span-2 relative" ref={dropdownRef}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Client Name" value={formData.clientName} onChange={(e) => { setFormData({...formData, clientName: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} autoComplete="off"/></div>
+                      <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Client Phone" value={formData.clientPhone} onChange={(e) => { setFormData({...formData, clientPhone: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} required autoComplete="off"/></div>
+                    </div>
+
+                    {showClientDropdown && (
+                      <div className={`absolute z-50 top-full left-0 w-full mt-2 bg-white border ${t.border} shadow-[0_10px_40px_rgb(0,0,0,0.15)] rounded-xl max-h-72 overflow-y-auto`}>
+                        {filteredClients.length > 0 && (
+                          <div className="p-2 flex flex-col gap-1">
+                            <div className="px-3 py-2 text-[10px] font-bold uppercase text-slate-500">Existing Clients</div>
+                            {filteredClients.map(client => (
+                              <button key={client.username} type="button" onClick={() => { setFormData(prev => ({ ...prev, clientName: client.client_name || '', clientPhone: client.username })); setShowClientDropdown(false); }} className="flex justify-between items-center w-full px-3 py-2.5 hover:bg-slate-100 rounded-lg text-left">
+                                <span className="font-semibold text-slate-800 text-sm flex items-center gap-2"><User size={14} className="text-slate-600"/> {client.client_name || 'Unknown'}</span>
+                                <span className="font-mono text-xs text-slate-500 flex items-center gap-1"><Phone size={12}/> {client.username}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="relative md:col-span-2 flex flex-col gap-3">
+                    <div className="relative"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl bg-white text-sm`} /></div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="relative">
+                        <Wrench size={16} className="absolute left-4 top-3.5 text-slate-500" />
+                        <select value={formData.assigned_engineer || ''} onChange={(e) => setFormData({...formData, assigned_engineer: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm appearance-none cursor-pointer`}>
+                          <option value="">Assign Engineer (Optional)</option>
+                          {engineersList.map(eng => <option key={eng.username} value={eng.username}>{eng.client_name || eng.username}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <label className={`flex items-center gap-2 bg-white border ${t.border} text-slate-700 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-sm font-semibold shadow-sm w-full justify-center`}>
+                          <ImagePlus size={16} className="text-slate-600" /> {formData.photo ? 'Change Photo' : 'Attach Device Photo'}
+                          <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                        </label>
+                        {formData.photo && (
+                          <div className={`relative border ${t.border} rounded-lg p-1 bg-white flex-none`}>
+                            <img src={formData.photo} alt="Preview" className="h-10 w-10 object-cover rounded-md" />
+                            <button type="button" onClick={() => setFormData({...formData, photo: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12}/></button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-2 justify-end">
+                  {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' }) }} className="bg-slate-300 hover:bg-slate-400 text-slate-800 border border-slate-400 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
+                  <button type="submit" className={`${t.btn} ${t.hover} text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md text-sm transition-colors`}>{editingItem ? 'Save Updates' : 'Add Item'}</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* MAIN RENDER BLOCK */}
+          {activeTab === 'reviews' ? (
+            <Reviews usersDB={usersDB} currentUser={currentUser} userRole={userRole} supabase={supabase} t={t} />
+          ) : !isInternal ? (
             <CustomerDashboard items={items} currentUser={currentUser} updateItemData={updateItemData} />
           ) : activeTab === 'history' ? (
             <HistoryLog items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} getClientName={getClientName} supabase={supabase} />
@@ -336,6 +341,7 @@ export default function App() {
           ) : (
             <KanbanBoard items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} startEdit={startEdit} deleteItem={deleteItem} getClientName={getClientName} updateItemData={updateItemData} supabase={supabase} currentUser={currentUser} usersDB={usersDB} />
           )}
+
         </div>
       )}
     </div>
