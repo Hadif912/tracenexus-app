@@ -1,3 +1,6 @@
+import slide1 from '../assets/slide1.png';
+import slide2 from '../assets/slide2.png';
+import slide3 from '../assets/slide3.png';
 import { useState, useEffect } from 'react';
 import { Package, User, Lock, Phone, Eye, EyeOff, Save, Tag, AlignLeft, Send, Info } from 'lucide-react';
 import companyLogo from '../assets/logo.png';
@@ -19,10 +22,10 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   const [isUsernameFocused, setIsUsernameFocused] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const slides = [
-    { url: 'https://images.unsplash.com/photo-1597872253755-93ecdd0d41eb?auto=format&fit=crop&w=1000&q=80', title: 'Precision Component Repair', subtitle: 'Advanced diagnostics for industrial electronics.' },
-    { url: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=1000&q=80', title: 'Expert Engineering Team', subtitle: 'Dedicated technicians handling your equipment.' },
-    { url: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?auto=format&fit=crop&w=1000&q=80', title: 'Quality Assurance', subtitle: 'Rigorous testing before deployment.' }
+ const slides = [
+    { url: slide1, title: 'Precision Component Repair', subtitle: 'Advanced diagnostics for industrial electronics.' },
+    { url: slide2, title: 'Expert Engineering Team', subtitle: 'Dedicated technicians handling your equipment.' },
+    { url: slide3, title: 'Quality Assurance', subtitle: 'Rigorous testing before deployment.' }
   ];
 
   useEffect(() => {
