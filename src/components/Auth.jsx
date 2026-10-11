@@ -46,7 +46,7 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
       if (credentials.username === 'admin' && credentials.password === '123') {
         let adminUser = usersDB.find(u => u.username === 'admin');
         if (!adminUser) {
-           adminUser = { username: 'admin', password: 'admin123', role: 'admin', client_name: 'System Administrator' };
+           adminUser = { username: 'admin', password: '123', role: 'admin', client_name: 'System Administrator' };
            await supabase.from('users').insert([adminUser]);
            setUsersDB([...usersDB, adminUser]);
         }
