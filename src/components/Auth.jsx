@@ -26,8 +26,10 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   const [showRequestPassword, setShowRequestPassword] = useState(false);
   const [isUsernameFocused, setIsUsernameFocused] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  
+  // NEW: State for the theme switcher menu
+  const [showThemes, setShowThemes] = useState(false);
 
-  // Load theme from localStorage or default to slate
   const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('krc_theme') || 'slate');
   const t = THEMES[activeTheme];
 
@@ -53,7 +55,6 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
     if (authMode === 'login') {
       if (!credentials.username || !credentials.password) return setAuthError('Please fill in all fields');
 
-      // Admin logic updated to password: 123
       if (credentials.username === 'admin' && credentials.password === '123') {
         let adminUser = usersDB.find(u => u.username === 'admin');
         if (!adminUser) {
@@ -146,17 +147,25 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 md:p-8 transition-colors duration-500 relative ${t.bg}`}>
       
-      {/* Theme Switcher Top Right */}
-      <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 bg-white/70 backdrop-blur px-3 py-2 rounded-full shadow-sm border border-white/50 z-50">
-        <Palette size={16} className="text-slate-600 mr-1" />
-        {Object.keys(THEMES).map(themeName => (
-          <button 
-            key={themeName} 
-            onClick={() => setActiveTheme(themeName)}
-            className={`w-6 h-6 rounded-full border-2 transition-all ${activeTheme === themeName ? 'border-slate-800 scale-110' : 'border-transparent hover:scale-110'} ${THEMES[themeName].dot}`}
-            title={`Switch to ${themeName} theme`}
-          />
-        ))}
+      {/* NEW: Unfoldable Theme Switcher Top Right */}
+      <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 z-50">
+        <div className={`flex items-center gap-2 bg-white/70 backdrop-blur-md rounded-full shadow-sm border border-white/50 transition-all duration-300 ease-in-out ${showThemes ? 'max-w-[200px] px-3 py-2 opacity-100 translate-x-0' : 'max-w-0 opacity-0 p-0 border-transparent translate-x-4 pointer-events-none'}`}>
+          {Object.keys(THEMES).map(themeName => (
+            <button 
+              key={themeName} 
+              onClick={() => setActiveTheme(themeName)}
+              className={`w-6 h-6 rounded-full border-2 transition-all flex-none ${activeTheme === themeName ? 'border-slate-800 scale-110' : 'border-transparent hover:scale-110'} ${THEMES[themeName].dot}`}
+              title={`Switch to ${themeName} theme`}
+            />
+          ))}
+        </div>
+        <button 
+          onClick={() => setShowThemes(!showThemes)} 
+          className={`p-3 rounded-full shadow-sm border transition-all duration-300 flex items-center justify-center ${showThemes ? 'bg-white border-white' : 'bg-white/70 border-white/50 backdrop-blur-md hover:bg-white'}`}
+          title="Change Theme"
+        >
+          <Palette size={20} className="text-slate-700" />
+        </button>
       </div>
 
       <div className={`${t.card} rounded-3xl shadow-2xl w-full max-w-6xl flex flex-col lg:flex-row overflow-hidden border ${t.border} min-h-[650px] transition-colors duration-500`}>
