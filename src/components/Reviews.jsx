@@ -15,7 +15,8 @@ export default function Reviews({ usersDB, currentUser, userRole, supabase, t, i
   }, []);
 
   const fetchReviews = async () => {
-    const { data } = await supabase.from('customer_reviews').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('customer_reviews').select('*').order('created_at', { ascending: false });
+    if (error) console.error("Error fetching reviews:", error);
     if (data) setReviews(data);
   };
 
@@ -27,13 +28,8 @@ export default function Reviews({ usersDB, currentUser, userRole, supabase, t, i
     reader.onload = (event) => setPhoto(event.target.result);
   };
 
-  // Find items belonging to this customer that are finished (in Outbound stage)
   const myFinishedItems = items.filter(item => item.owner === currentUser && item.stage === 'Outbound');
-  
-  // Find which items this customer has already reviewed
   const myReviewedItemIds = reviews.filter(r => r.username === currentUser).map(r => r.item_id);
-  
-  // Final list of eligible items to review
   const eligibleItemsToReview = myFinishedItems.filter(item => !myReviewedItemIds.includes(item.id));
 
   const handleSubmit = async (e) => {
@@ -52,7 +48,14 @@ export default function Reviews({ usersDB, currentUser, userRole, supabase, t, i
       item_name: selectedItem.name
     };
     
-    await supabase.from('customer_reviews').insert([newReview]);
+    // ADDED STRICT ERROR CATCHING HERE:
+    const { error } = await supabase.from('customer_reviews').insert([newReview]);
+    
+    if (error) {
+      alert(`Database Error: ${error.message}`);
+      setIsSubmitting(false);
+      return; // Stop the function so the form doesn't disappear
+    }
     
     setComment(''); setPhoto(null); setRating(5); setSelectedItemId(''); setShowForm(false);
     fetchReviews();
