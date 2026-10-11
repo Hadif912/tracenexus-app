@@ -4,7 +4,6 @@ import { Package, Edit2, Trash2, User, ImageIcon, X, ArrowLeft, ArrowRight, Chec
 
 export default function KanbanBoard({ items, setItems, isAdmin, isInternal, startEdit, deleteItem, getClientName, updateItemData, supabase, currentUser, usersDB }) {
   const [viewingPhoto, setViewingPhoto] = useState(null); 
-  // NEW: State to track which subpage/stage is currently active
   const [activeStage, setActiveStage] = useState(STAGES[0]);
   
   const updateItemStage = async (itemId, targetStage) => {
@@ -30,7 +29,6 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
     return user ? (user.client_name || user.username) : 'Unassigned';
   };
 
-  // Get items for the currently selected subpage
   const stageItems = items.filter(item => item.stage === activeStage);
   const stageIndex = STAGES.indexOf(activeStage);
   const config = STAGE_CONFIG[activeStage];
@@ -38,7 +36,7 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
   return (
     <div className="flex flex-col h-full">
       
-      {/* NEW: Subpage Navigation Menu */}
+      {/* Subpage Navigation Menu */}
       <div className="bg-slate-200/70 p-1.5 rounded-xl mb-6 flex overflow-x-auto custom-scrollbar border border-slate-300 shadow-sm">
         {STAGES.map((stage) => {
           const count = items.filter(i => i.stage === stage).length;
@@ -59,7 +57,7 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
         })}
       </div>
 
-      {/* NEW: Subpage Header */}
+      {/* Subpage Header */}
       <div className="flex items-center gap-3 mb-6 px-2">
         <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${config.bg} ${config.text} border ${config.border}`}>
           <Layers size={20} />
@@ -70,7 +68,7 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
         </div>
       </div>
 
-      {/* NEW: Responsive Grid Layout for Cards */}
+      {/* Responsive Grid Layout for Cards */}
       <div className="flex-1 min-h-[50vh]">
         {stageItems.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8">
@@ -152,36 +150,38 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
                       </div>
                     )}
 
+                    {/* FIXED STATUS LAYOUT */}
                     {activeStage === 'Status' && (
-                      <div className="flex flex-col gap-2 bg-slate-200 p-3.5 rounded-xl border border-slate-300">
-                        <div className="flex justify-between text-sm items-center">
-                          <span className="font-bold text-slate-700">Repair Status:</span>
-                          {canStatus ? (
-                            <select value={item.repair_status || 'In Progress'} onChange={(e) => updateItemData(item.id, { repair_status: e.target.value })} className="p-1.5 border border-slate-300 rounded-lg bg-white font-bold text-slate-800 outline-none shadow-sm cursor-pointer">
-                              <option value="In Progress">In Progress</option>
-                              <option value="Done">Done</option>
-                            </select>
-                          ) : (
-                            <span className="font-extrabold text-slate-800">{item.repair_status || 'In Progress'}</span>
-                          )}
-                        </div>
+                      <div className="flex flex-col gap-1.5 bg-slate-200 p-3.5 rounded-xl border border-slate-300">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          Repair Status
+                        </span>
+                        {canStatus ? (
+                          <select value={item.repair_status || 'In Progress'} onChange={(e) => updateItemData(item.id, { repair_status: e.target.value })} className="w-full p-2 border border-slate-300 rounded-lg bg-white text-sm font-bold text-slate-800 focus:ring-2 focus:ring-slate-500/20 outline-none cursor-pointer">
+                            <option value="In Progress">In Progress</option>
+                            <option value="Done">Done</option>
+                          </select>
+                        ) : (
+                          <span className="font-extrabold text-slate-800 text-base">{item.repair_status || 'In Progress'}</span>
+                        )}
                         {!canStatus && <p className="text-[10px] text-amber-700 font-bold text-center bg-amber-100 py-1.5 mt-1 rounded-lg border border-amber-300">Read-Only: Engineer or Admin required</p>}
                       </div>
                     )}
 
+                    {/* FIXED OUTBOUND LAYOUT */}
                     {activeStage === 'Outbound' && (
-                      <div className="flex flex-col gap-2 bg-slate-200 p-3.5 rounded-xl border border-slate-300">
-                        <div className="flex justify-between text-sm items-center">
-                          <span className="font-bold text-slate-700">Inventory Status:</span>
-                          {canOutbound ? (
-                            <select value={item.outbound_status || 'In Inventory'} onChange={(e) => updateItemData(item.id, { outbound_status: e.target.value })} className="p-1.5 border border-slate-300 rounded-lg bg-white font-bold text-slate-800 outline-none shadow-sm cursor-pointer">
-                              <option value="In Inventory">In Inventory</option>
-                              <option value="Delivered">Delivered</option>
-                            </select>
-                          ) : (
-                            <span className="font-extrabold text-slate-800">{item.outbound_status || 'In Inventory'}</span>
-                          )}
-                        </div>
+                      <div className="flex flex-col gap-1.5 bg-slate-200 p-3.5 rounded-xl border border-slate-300">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          Inventory Status
+                        </span>
+                        {canOutbound ? (
+                          <select value={item.outbound_status || 'In Inventory'} onChange={(e) => updateItemData(item.id, { outbound_status: e.target.value })} className="w-full p-2 border border-slate-300 rounded-lg bg-white text-sm font-bold text-slate-800 focus:ring-2 focus:ring-slate-500/20 outline-none cursor-pointer">
+                            <option value="In Inventory">In Inventory</option>
+                            <option value="Delivered">Delivered</option>
+                          </select>
+                        ) : (
+                          <span className="font-extrabold text-slate-800 text-base">{item.outbound_status || 'In Inventory'}</span>
+                        )}
                         {!canOutbound && <p className="text-[10px] text-amber-700 font-bold text-center bg-amber-100 py-1.5 mt-1 rounded-lg border border-amber-300">Only Admins can dispatch items</p>}
                       </div>
                     )}
