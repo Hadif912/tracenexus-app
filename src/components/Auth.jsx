@@ -43,7 +43,7 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
     if (authMode === 'login') {
       if (!credentials.username || !credentials.password) return setAuthError('Please fill in all fields');
 
-      if (credentials.username === 'admin' && credentials.password === 'admin123') {
+      if (credentials.username === 'admin' && credentials.password === '123') {
         let adminUser = usersDB.find(u => u.username === 'admin');
         if (!adminUser) {
            adminUser = { username: 'admin', password: 'admin123', role: 'admin', client_name: 'System Administrator' };
