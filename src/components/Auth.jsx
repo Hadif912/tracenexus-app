@@ -1,9 +1,9 @@
+import { useState, useEffect } from 'react';
+import { Package, User, Lock, Phone, Eye, EyeOff, Save, Tag, AlignLeft, Send, Info, LucideSquareDashedMousePointer } from 'lucide-react';
+import companyLogo from '../assets/logo.png';
 import slide1 from '../assets/slide1.png';
 import slide2 from '../assets/slide2.png';
 import slide3 from '../assets/slide3.png';
-import { useState, useEffect } from 'react';
-import { Package, User, Lock, Phone, Eye, EyeOff, Save, Tag, AlignLeft, Send, Info } from 'lucide-react';
-import companyLogo from '../assets/logo.png';
 
 export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser, addRequest, supabase }) {
   const [authMode, setAuthMode] = useState('login'); 
@@ -21,6 +21,7 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   // NEW: State for Input Guide and Slideshow
   const [isUsernameFocused, setIsUsernameFocused] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  
 
  const slides = [
     { url: slide1, title: 'Precision Component Repair', subtitle: 'Advanced diagnostics for industrial electronics.' },
