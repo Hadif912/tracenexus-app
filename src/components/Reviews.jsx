@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Star, ImagePlus, X, Send, User } from 'lucide-react';
+import { Star, ImagePlus, X, Send, User, Package } from 'lucide-react';
 
-export default function Reviews({ usersDB, currentUser, userRole, supabase, t }) {
+export default function Reviews({ usersDB, currentUser, userRole, supabase, t, items }) {
   const [reviews, setReviews] = useState([]);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [photo, setPhoto] = useState(null);
+  const [selectedItemId, setSelectedItemId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
@@ -26,15 +27,34 @@ export default function Reviews({ usersDB, currentUser, userRole, supabase, t })
     reader.onload = (event) => setPhoto(event.target.result);
   };
 
+  // Find items belonging to this customer that are finished (in Outbound stage)
+  const myFinishedItems = items.filter(item => item.owner === currentUser && item.stage === 'Outbound');
+  
+  // Find which items this customer has already reviewed
+  const myReviewedItemIds = reviews.filter(r => r.username === currentUser).map(r => r.item_id);
+  
+  // Final list of eligible items to review
+  const eligibleItemsToReview = myFinishedItems.filter(item => !myReviewedItemIds.includes(item.id));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!comment.trim()) return alert('Please write a review.');
+    if (!comment.trim() || !selectedItemId) return alert('Please select an item and write a review.');
     setIsSubmitting(true);
     
-    const newReview = { username: currentUser, rating, comment, photo };
+    const selectedItem = myFinishedItems.find(i => i.id === selectedItemId);
+    
+    const newReview = { 
+      username: currentUser, 
+      rating, 
+      comment, 
+      photo,
+      item_id: selectedItem.id,
+      item_name: selectedItem.name
+    };
+    
     await supabase.from('customer_reviews').insert([newReview]);
     
-    setComment(''); setPhoto(null); setRating(5); setShowForm(false);
+    setComment(''); setPhoto(null); setRating(5); setSelectedItemId(''); setShowForm(false);
     fetchReviews();
     setIsSubmitting(false);
   };
@@ -51,10 +71,16 @@ export default function Reviews({ usersDB, currentUser, userRole, supabase, t })
           <h2 className={`text-2xl font-extrabold ${t.text}`}>Customer Reviews</h2>
           <p className="text-slate-500 font-medium text-sm">See what our clients are saying about our repair services.</p>
         </div>
-        {userRole === 'customer' && !showForm && (
-          <button onClick={() => setShowForm(true)} className={`${t.btn} ${t.hover} text-white px-6 py-2.5 rounded-xl font-bold transition-colors shadow-sm`}>
-            Write a Review
-          </button>
+        {userRole === 'customer' && (
+          eligibleItemsToReview.length > 0 ? (
+            <button onClick={() => setShowForm(true)} className={`${t.btn} ${t.hover} text-white px-6 py-2.5 rounded-xl font-bold transition-colors shadow-sm`}>
+              Write a Review
+            </button>
+          ) : (
+            <div className="bg-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold border border-slate-300">
+              Complete a repair to leave a review
+            </div>
+          )
         )}
       </div>
 
@@ -62,14 +88,26 @@ export default function Reviews({ usersDB, currentUser, userRole, supabase, t })
         <form onSubmit={handleSubmit} className={`p-6 rounded-2xl border ${t.border} bg-white shadow-lg flex flex-col gap-4 animate-in slide-in-from-top-4`}>
           <h3 className="font-bold text-slate-800 border-b border-slate-200 pb-2">Rate Your Experience</h3>
           
-          <div className="flex items-center gap-3 mb-2">
-            <span className="font-bold text-slate-600 text-sm">Overall Rating:</span>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map(star => (
-                <button key={star} type="button" onClick={() => setRating(star)} className="focus:outline-none transition-transform hover:scale-110">
-                  <Star size={28} fill={star <= rating ? "#fbbf24" : "none"} className={star <= rating ? "text-amber-400" : "text-slate-300"} />
-                </button>
-              ))}
+          <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <span className="font-bold text-slate-600 text-sm">Overall Rating:</span>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button key={star} type="button" onClick={() => setRating(star)} className="focus:outline-none transition-transform hover:scale-110">
+                    <Star size={28} fill={star <= rating ? "#fbbf24" : "none"} className={star <= rating ? "text-amber-400" : "text-slate-300"} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative min-w-[250px]">
+              <Package size={16} className="absolute left-3 top-3 text-slate-500" />
+              <select value={selectedItemId} onChange={e => setSelectedItemId(e.target.value)} className={`w-full pl-9 pr-3 py-2.5 border ${t.border} bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-slate-500/20 appearance-none cursor-pointer`} required>
+                <option value="">Select completed repair...</option>
+                {eligibleItemsToReview.map(item => (
+                  <option key={item.id} value={item.id}>{item.name} ({item.id})</option>
+                ))}
+              </select>
             </div>
           </div>
           
@@ -124,9 +162,16 @@ export default function Reviews({ usersDB, currentUser, userRole, supabase, t })
               </div>
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(review.created_at).toLocaleDateString()}</span>
             </div>
-            <p className="text-slate-600 text-sm leading-relaxed mt-1">{review.comment}</p>
+            
+            {review.item_name && (
+              <div className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 text-[11px] font-bold px-2.5 py-1 rounded-md border border-slate-200 w-fit">
+                <Package size={12} /> Repaired: {review.item_name}
+              </div>
+            )}
+            
+            <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
             {review.photo && (
-              <div className="mt-2 rounded-xl overflow-hidden border border-slate-200">
+              <div className="mt-auto pt-2 rounded-xl overflow-hidden border border-slate-200">
                 <img src={review.photo} alt="Review attachment" className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500" />
               </div>
             )}

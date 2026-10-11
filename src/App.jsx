@@ -327,7 +327,7 @@ export default function App() {
 
           {/* MAIN RENDER BLOCK */}
           {activeTab === 'reviews' ? (
-            <Reviews usersDB={usersDB} currentUser={currentUser} userRole={userRole} supabase={supabase} t={t} />
+            <Reviews usersDB={usersDB} currentUser={currentUser} userRole={userRole} supabase={supabase} t={t} items={items} />
           ) : !isInternal ? (
             <CustomerDashboard items={items} currentUser={currentUser} updateItemData={updateItemData} />
           ) : activeTab === 'history' ? (
