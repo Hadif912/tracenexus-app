@@ -5,7 +5,6 @@ import slide1 from '../assets/hero1.png';
 import slide2 from '../assets/hero2.png';
 import slide3 from '../assets/hero3.png';
 
-// Notice `t` is now received as a prop from App.jsx
 export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser, addRequest, supabase, t }) {
   const [authMode, setAuthMode] = useState('login'); 
   const [authError, setAuthError] = useState('');
