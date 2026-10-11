@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Package, User, Lock, Phone, Eye, EyeOff, Save, Tag, AlignLeft, Send, Info } from 'lucide-react';
+import { Package, User, Lock, Phone, Eye, EyeOff, Save, Tag, AlignLeft, Send, Info, Palette } from 'lucide-react';
 import companyLogo from '../assets/logo.png';
 import slide1 from '../assets/hero1.png';
 import slide2 from '../assets/hero2.png';
 import slide3 from '../assets/hero3.png';
+
+const THEMES = {
+  slate: { bg: 'bg-slate-300', card: 'bg-slate-100', btn: 'bg-slate-800', hover: 'hover:bg-slate-900', text: 'text-slate-900', border: 'border-slate-300', dot: 'bg-slate-500' },
+  blue: { bg: 'bg-sky-200', card: 'bg-sky-50', btn: 'bg-sky-600', hover: 'hover:bg-sky-700', text: 'text-sky-900', border: 'border-sky-200', dot: 'bg-sky-500' },
+  petronas: { bg: 'bg-teal-200', card: 'bg-teal-50', btn: 'bg-teal-700', hover: 'hover:bg-teal-800', text: 'text-teal-900', border: 'border-teal-200', dot: 'bg-teal-500' },
+  purple: { bg: 'bg-purple-200', card: 'bg-purple-50', btn: 'bg-purple-700', hover: 'hover:bg-purple-800', text: 'text-purple-900', border: 'border-purple-200', dot: 'bg-purple-500' }
+};
 
 export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser, addRequest, supabase }) {
   const [authMode, setAuthMode] = useState('login'); 
@@ -17,22 +24,25 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRequestPassword, setShowRequestPassword] = useState(false);
-  
-  // NEW: State for Input Guide and Slideshow
   const [isUsernameFocused, setIsUsernameFocused] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  
 
- const slides = [
+  // Load theme from localStorage or default to slate
+  const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('krc_theme') || 'slate');
+  const t = THEMES[activeTheme];
+
+  const slides = [
     { url: slide1, title: 'Precision Component Repair', subtitle: 'Advanced diagnostics for industrial electronics.' },
     { url: slide2, title: 'Expert Engineering Team', subtitle: 'Dedicated technicians handling your equipment.' },
     { url: slide3, title: 'Quality Assurance', subtitle: 'Rigorous testing before deployment.' }
   ];
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    localStorage.setItem('krc_theme', activeTheme);
+  }, [activeTheme]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % slides.length), 5000);
     return () => clearInterval(timer);
   }, [slides.length]);
 
@@ -43,6 +53,7 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
     if (authMode === 'login') {
       if (!credentials.username || !credentials.password) return setAuthError('Please fill in all fields');
 
+      // Admin logic updated to password: 123
       if (credentials.username === 'admin' && credentials.password === '123') {
         let adminUser = usersDB.find(u => u.username === 'admin');
         if (!adminUser) {
@@ -118,14 +129,14 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
 
   if (pendingPasswordChange) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-300">
-        <div className="bg-slate-100 p-10 rounded-2xl max-w-md w-full shadow-lg border border-slate-300">
-          <h1 className="text-2xl font-extrabold text-slate-900 mb-6 text-center">Secure Your Account</h1>
+      <div className={`min-h-screen flex items-center justify-center p-4 transition-colors duration-500 ${t.bg}`}>
+        <div className={`${t.card} p-10 rounded-2xl max-w-md w-full shadow-lg border ${t.border}`}>
+          <h1 className={`text-2xl font-extrabold ${t.text} mb-6 text-center`}>Secure Your Account</h1>
           {authError && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm text-center">{authError}</div>}
           <form onSubmit={handlePasswordUpdate} className="space-y-4">
-            <input type="password" placeholder="New Password" value={passwordForm.newPass} onChange={(e) => setPasswordForm({...passwordForm, newPass: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl bg-slate-50" required/>
-            <input type="password" placeholder="Confirm Password" value={passwordForm.confirmPass} onChange={(e) => setPasswordForm({...passwordForm, confirmPass: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl bg-slate-50" required/>
-            <button type="submit" className="w-full bg-slate-800 text-slate-100 py-3 rounded-xl font-bold">Save & Continue</button>
+            <input type="password" placeholder="New Password" value={passwordForm.newPass} onChange={(e) => setPasswordForm({...passwordForm, newPass: e.target.value})} className={`w-full p-3 border ${t.border} rounded-xl bg-white`} required/>
+            <input type="password" placeholder="Confirm Password" value={passwordForm.confirmPass} onChange={(e) => setPasswordForm({...passwordForm, confirmPass: e.target.value})} className={`w-full p-3 border ${t.border} rounded-xl bg-white`} required/>
+            <button type="submit" className={`w-full ${t.btn} ${t.hover} text-white py-3 rounded-xl font-bold transition-colors`}>Save & Continue</button>
           </form>
         </div>
       </div>
@@ -133,17 +144,31 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   }
 
   return (
-    <div className="min-h-screen bg-slate-300 flex items-center justify-center p-4 md:p-8">
-      <div className="bg-slate-100 rounded-3xl shadow-2xl w-full max-w-6xl flex flex-col lg:flex-row overflow-hidden border border-slate-300 min-h-[650px]">
+    <div className={`min-h-screen flex items-center justify-center p-4 md:p-8 transition-colors duration-500 relative ${t.bg}`}>
+      
+      {/* Theme Switcher Top Right */}
+      <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 bg-white/70 backdrop-blur px-3 py-2 rounded-full shadow-sm border border-white/50 z-50">
+        <Palette size={16} className="text-slate-600 mr-1" />
+        {Object.keys(THEMES).map(themeName => (
+          <button 
+            key={themeName} 
+            onClick={() => setActiveTheme(themeName)}
+            className={`w-6 h-6 rounded-full border-2 transition-all ${activeTheme === themeName ? 'border-slate-800 scale-110' : 'border-transparent hover:scale-110'} ${THEMES[themeName].dot}`}
+            title={`Switch to ${themeName} theme`}
+          />
+        ))}
+      </div>
+
+      <div className={`${t.card} rounded-3xl shadow-2xl w-full max-w-6xl flex flex-col lg:flex-row overflow-hidden border ${t.border} min-h-[650px] transition-colors duration-500`}>
         
         {/* Left Panel: Form */}
         <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col justify-center relative">
           <div className="max-w-md w-full mx-auto">
             <div className="text-center mb-10">
-              <div className="w-20 h-20 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm overflow-hidden flex-none bg-white">
+              <div className={`w-20 h-20 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm overflow-hidden flex-none bg-white border ${t.border}`}>
                 <img src={companyLogo} alt="Company Logo" className="w-full h-full object-contain p-2" />
               </div>
-              <h1 className="text-3xl font-extrabold text-slate-900 mb-2">{authMode === 'request' ? 'Request a Repair' : 'KRC Electronic'}</h1>
+              <h1 className={`text-3xl font-extrabold ${t.text} mb-2`}>{authMode === 'request' ? 'Request a Repair' : 'KRC Electronic'}</h1>
               <p className="text-slate-500 font-medium">{authMode === 'login' ? 'Track & Trace System Portal' : authMode === 'request' ? 'Send us your device details.' : 'Customer Registration'}</p>
             </div>
             
@@ -153,18 +178,18 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
             {authMode === 'request' ? (
               <form onSubmit={handleRequestSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Device Name" value={requestForm.itemName} onChange={(e) => setRequestForm({...requestForm, itemName: e.target.value})} className="w-full pl-11 p-3 border border-slate-300 bg-slate-50 rounded-xl" required/></div>
-                  <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Brand" value={requestForm.itemBrand} onChange={(e) => setRequestForm({...requestForm, itemBrand: e.target.value})} className="w-full pl-11 p-3 border border-slate-300 bg-slate-50 rounded-xl"/></div>
-                  <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Full Name" value={requestForm.clientName} onChange={(e) => setRequestForm({...requestForm, clientName: e.target.value})} className="w-full pl-11 p-3 border border-slate-300 bg-slate-50 rounded-xl" required/></div>
-                  <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Phone Number (+60...)" value={requestForm.phone} onChange={(e) => setRequestForm({...requestForm, phone: e.target.value})} className="w-full pl-11 p-3 border border-slate-300 bg-slate-50 rounded-xl" required/></div>
+                  <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Device Name" value={requestForm.itemName} onChange={(e) => setRequestForm({...requestForm, itemName: e.target.value})} className={`w-full pl-11 p-3 border ${t.border} bg-white rounded-xl`} required/></div>
+                  <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Brand" value={requestForm.itemBrand} onChange={(e) => setRequestForm({...requestForm, itemBrand: e.target.value})} className={`w-full pl-11 p-3 border ${t.border} bg-white rounded-xl`}/></div>
+                  <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Full Name" value={requestForm.clientName} onChange={(e) => setRequestForm({...requestForm, clientName: e.target.value})} className={`w-full pl-11 p-3 border ${t.border} bg-white rounded-xl`} required/></div>
+                  <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Phone Number (+60...)" value={requestForm.phone} onChange={(e) => setRequestForm({...requestForm, phone: e.target.value})} className={`w-full pl-11 p-3 border ${t.border} bg-white rounded-xl`} required/></div>
                   <div className="relative md:col-span-2">
                     <Lock size={16} className="absolute left-4 top-3.5 text-slate-500" />
-                    <input type={showRequestPassword ? "text" : "password"} placeholder="Create Password to Track Request" value={requestForm.password} onChange={(e) => setRequestForm({...requestForm, password: e.target.value})} className="w-full pl-11 pr-12 p-3 border border-slate-300 bg-slate-50 rounded-xl" required/>
+                    <input type={showRequestPassword ? "text" : "password"} placeholder="Create Password to Track Request" value={requestForm.password} onChange={(e) => setRequestForm({...requestForm, password: e.target.value})} className={`w-full pl-11 pr-12 p-3 border ${t.border} bg-white rounded-xl`} required/>
                     <button type="button" onClick={() => setShowRequestPassword(!showRequestPassword)} className="absolute right-4 top-3.5 text-slate-500"><Eye size={16}/></button>
                   </div>
-                  <div className="relative md:col-span-2"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Describe issue..." value={requestForm.description} onChange={(e) => setRequestForm({...requestForm, description: e.target.value})} className="w-full pl-11 p-3 border border-slate-300 bg-slate-50 rounded-xl" /></div>
+                  <div className="relative md:col-span-2"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Describe issue..." value={requestForm.description} onChange={(e) => setRequestForm({...requestForm, description: e.target.value})} className={`w-full pl-11 p-3 border ${t.border} bg-white rounded-xl`} /></div>
                 </div>
-                <button type="submit" className="w-full bg-slate-800 text-slate-100 hover:bg-slate-900 p-4 rounded-xl font-bold mt-4 transition-colors"><Send size={18} className="inline mr-2"/> Submit Request</button>
+                <button type="submit" className={`w-full ${t.btn} ${t.hover} text-white p-4 rounded-xl font-bold mt-4 transition-colors`}><Send size={18} className="inline mr-2"/> Submit Request</button>
                 <button type="button" onClick={() => setAuthMode('login')} className="mt-4 w-full text-center text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">Cancel & Back to Login</button>
               </form>
             ) : (
@@ -177,29 +202,28 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
                     onChange={(e) => setCredentials({...credentials, username: e.target.value})} 
                     onFocus={() => setIsUsernameFocused(true)}
                     onBlur={() => setTimeout(() => setIsUsernameFocused(false), 200)}
-                    className="w-full pl-12 p-3.5 border border-slate-300 bg-slate-50 rounded-xl focus:ring-2 focus:ring-slate-500/20 outline-none transition-all" 
+                    className={`w-full pl-12 p-3.5 border ${t.border} bg-white rounded-xl focus:ring-2 focus:ring-slate-500/20 outline-none transition-all`} 
                     placeholder="Enter Identifier" 
                   />
                   
-                  {/* Dynamic Login Guide Popover */}
                   {isUsernameFocused && (
-                    <div className="absolute z-10 w-full mt-2 p-4 bg-slate-800 text-slate-100 rounded-xl text-sm shadow-xl border border-slate-700 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <p className="font-bold mb-2 flex items-center gap-2 text-blue-400"><Info size={16}/> Login Format Guide</p>
-                      <ul className="space-y-1.5 ml-1 text-slate-300">
+                    <div className={`absolute z-10 w-full mt-2 p-4 ${t.btn} text-white rounded-xl text-sm shadow-xl border border-white/20 animate-in fade-in slide-in-from-top-2 duration-200`}>
+                      <p className="font-bold mb-2 flex items-center gap-2"><Info size={16}/> Login Format Guide</p>
+                      <ul className="space-y-1.5 ml-1 text-white/80">
                         <li><b className="text-white">Admin:</b> Use admin username</li>
                         <li><b className="text-white">Staff:</b> Use assigned Staff ID</li>
-                        <li><b className="text-white">Customer:</b> Use phone number (e.g., <span className="font-mono bg-slate-700 px-1.5 py-0.5 rounded text-xs">+60184352453</span>)</li>
+                        <li><b className="text-white">Customer:</b> Use phone number (e.g., <span className="font-mono bg-black/20 px-1.5 py-0.5 rounded text-xs">+60184352453</span>)</li>
                       </ul>
                     </div>
                   )}
                 </div>
                 <div className="relative">
                   <Lock size={18} className="absolute left-4 top-3.5 text-slate-500" />
-                  <input type={showLoginPassword ? "text" : "password"} value={credentials.password} onChange={(e) => setCredentials({...credentials, password: e.target.value})} className="w-full pl-12 pr-12 p-3.5 border border-slate-300 bg-slate-50 rounded-xl focus:ring-2 focus:ring-slate-500/20 outline-none" placeholder="Password" />
+                  <input type={showLoginPassword ? "text" : "password"} value={credentials.password} onChange={(e) => setCredentials({...credentials, password: e.target.value})} className={`w-full pl-12 pr-12 p-3.5 border ${t.border} bg-white rounded-xl focus:ring-2 focus:ring-slate-500/20 outline-none`} placeholder="Password" />
                   <button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="absolute right-4 top-3.5 text-slate-500 hover:text-slate-800 transition-colors"><Eye size={18}/></button>
                 </div>
-                <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-slate-100 p-4 rounded-xl font-bold transition-all shadow-md shadow-slate-900/10">Access Portal</button>
-                <button type="button" onClick={() => setAuthMode('request')} className="w-full mt-4 bg-slate-200 hover:bg-slate-300 border border-slate-300 text-slate-700 py-3.5 rounded-xl font-bold transition-colors">Want to repair an item? Submit request</button>
+                <button type="submit" className={`w-full ${t.btn} ${t.hover} text-white p-4 rounded-xl font-bold transition-all shadow-md shadow-slate-900/10`}>Access Portal</button>
+                <button type="button" onClick={() => setAuthMode('request')} className={`w-full mt-4 bg-white hover:bg-slate-50 border ${t.border} ${t.text} py-3.5 rounded-xl font-bold transition-colors`}>Want to repair an item? Submit request</button>
               </form>
             )}
           </div>
@@ -221,7 +245,6 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
             </div>
           ))}
           
-          {/* Slide Indicators */}
           <div className="absolute bottom-6 left-0 w-full flex justify-center gap-2 z-30">
             {slides.map((_, index) => (
               <button 
