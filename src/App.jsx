@@ -8,9 +8,22 @@ import CustomerDashboard from './components/CustomerDashboard';
 import ClientManagement from './components/ClientManagement';
 import RequestsManagement from './components/RequestsManagement';
 import EngineerManagement from './components/EngineerManagement';
-import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench, Briefcase } from 'lucide-react';
+import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench, Briefcase, Palette } from 'lucide-react';
+
+// GLOBAL THEMES DICTIONARY
+const THEMES = {
+  slate: { bg: 'bg-slate-300', card: 'bg-slate-100', btn: 'bg-slate-800', hover: 'hover:bg-slate-900', text: 'text-slate-900', border: 'border-slate-300', dot: 'bg-slate-500' },
+  blue: { bg: 'bg-sky-200', card: 'bg-sky-50', btn: 'bg-sky-600', hover: 'hover:bg-sky-700', text: 'text-sky-900', border: 'border-sky-200', dot: 'bg-sky-500' },
+  petronas: { bg: 'bg-teal-200', card: 'bg-teal-50', btn: 'bg-teal-700', hover: 'hover:bg-teal-800', text: 'text-teal-900', border: 'border-teal-200', dot: 'bg-teal-500' },
+  purple: { bg: 'bg-purple-200', card: 'bg-purple-50', btn: 'bg-purple-700', hover: 'hover:bg-purple-800', text: 'text-purple-900', border: 'border-purple-200', dot: 'bg-purple-500' }
+};
 
 export default function App() {
+  // THEME STATE
+  const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('krc_theme') || 'slate');
+  const [showThemes, setShowThemes] = useState(false);
+  const t = THEMES[activeTheme];
+
   const [userRole, setUserRole] = useState(() => {
     const role = localStorage.getItem('wh_role');
     return (role && role !== 'null') ? role : null;
@@ -62,6 +75,11 @@ export default function App() {
 
   useEffect(() => { loadData(); }, []);
 
+  // Save Theme to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('krc_theme', activeTheme);
+  }, [activeTheme]);
+
   useEffect(() => {
     if (userRole && userRole !== 'null') localStorage.setItem('wh_role', userRole); 
     if (currentUser && currentUser !== 'null') localStorage.setItem('wh_user', currentUser); 
@@ -100,12 +118,6 @@ export default function App() {
       setFormData({ ...formData, photo: event.target.result });
     };
   };
-
-  if (isLoading && items.length === 0) return <div className="min-h-screen bg-slate-300 flex items-center justify-center font-bold text-slate-700">Connecting to Database...</div>;
-
-  if (!userRole || userRole === 'null') {
-    return <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} addRequest={(req) => setRequests([...requests, req])} supabase={supabase} />;
-  }
 
   const handleReceiveItem = async (e) => {
     e.preventDefault();
@@ -156,149 +168,176 @@ export default function App() {
 
   const filteredClients = customerList.filter(c => c.username.includes(formData.clientPhone) && (c.client_name || '').toLowerCase().includes(formData.clientName.toLowerCase()));
 
-  // FULL WIDTH LAYOUT: Removed max-w, adjusted padding
-  return (
-    <div className="min-h-screen bg-slate-300 p-2 md:p-4 text-left font-sans text-slate-800">
-      <div className="w-full">
-        <div className="bg-slate-100 rounded-2xl shadow-md border border-slate-300 p-4 md:p-6 mb-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-2">
-            <div className="flex items-center gap-4">
-              
-              {/* COMPANY LOGO PLACEHOLDER */}
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-sm overflow-hidden flex-none bg-white">
-                <img src={companyLogo} alt="Company Logo" className="w-full h-full object-contain p-1" />
-              </div>
+  if (isLoading && items.length === 0) return <div className={`min-h-screen ${t.bg} flex items-center justify-center font-bold ${t.text}`}>Connecting to Database...</div>;
 
-              <div>
-                <h1 className="text-2xl font-extrabold text-slate-900 m-0 tracking-tight">KRC Electronic Track & Trace Dashboard</h1>
-                <div className="flex items-center gap-3 mt-1.5">
-                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide flex items-center gap-1.5 uppercase ${isAdmin ? 'bg-slate-300 text-slate-800' : userRole === 'staff' ? 'bg-slate-200 text-slate-700' : 'bg-slate-200 text-slate-600'}`}>
-                    {isAdmin ? <><Shield size={12}/> Admin</> : userRole === 'staff' ? <><Activity size={12}/> Engineer</> : <><User size={12}/> Client</>}
-                  </span>
-                  <span className="text-slate-600 text-sm font-medium">Session: <b className="text-slate-900">{currentUser}</b></span>
+  return (
+    <div className={`min-h-screen ${t.bg} font-sans text-slate-800 transition-colors duration-500`}>
+      
+      {/* GLOBAL UN-FOLDABLE THEME SWITCHER */}
+      <div className="fixed top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 z-[100]">
+        <div className={`flex items-center gap-2 bg-white/70 backdrop-blur-md rounded-full shadow-sm border border-white/50 transition-all duration-300 ease-in-out ${showThemes ? 'max-w-[200px] px-3 py-2 opacity-100 translate-x-0' : 'max-w-0 opacity-0 p-0 border-transparent translate-x-4 pointer-events-none'}`}>
+          {Object.keys(THEMES).map(themeName => (
+            <button 
+              key={themeName} 
+              onClick={() => setActiveTheme(themeName)}
+              className={`w-6 h-6 rounded-full border-2 transition-all flex-none ${activeTheme === themeName ? 'border-slate-800 scale-110' : 'border-transparent hover:scale-110'} ${THEMES[themeName].dot}`}
+              title={`Switch to ${themeName} theme`}
+            />
+          ))}
+        </div>
+        <button 
+          onClick={() => setShowThemes(!showThemes)} 
+          className={`p-3 rounded-full shadow-sm border transition-all duration-300 flex items-center justify-center ${showThemes ? 'bg-white border-white' : 'bg-white/70 border-white/50 backdrop-blur-md hover:bg-white'}`}
+          title="Change Theme"
+        >
+          <Palette size={20} className="text-slate-700" />
+        </button>
+      </div>
+
+      {(!userRole || userRole === 'null') ? (
+        // RENDER LOGIN PAGE
+        <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} addRequest={(req) => setRequests([...requests, req])} supabase={supabase} t={t} />
+      ) : (
+        // RENDER DASHBOARD
+        <div className="p-2 md:p-4 text-left w-full">
+          <div className={`${t.card} rounded-2xl shadow-md border ${t.border} p-4 md:p-6 mb-6 transition-colors duration-500`}>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-2">
+              <div className="flex items-center gap-4">
+                
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-sm overflow-hidden flex-none bg-white">
+                  <img src={companyLogo} alt="Company Logo" className="w-full h-full object-contain p-1" />
+                </div>
+
+                <div>
+                  <h1 className={`text-2xl font-extrabold ${t.text} m-0 tracking-tight transition-colors duration-500`}>KRC Electronic Track & Trace Dashboard</h1>
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide flex items-center gap-1.5 uppercase ${isAdmin ? 'bg-slate-300 text-slate-800' : userRole === 'staff' ? 'bg-slate-200 text-slate-700' : 'bg-slate-200 text-slate-600'}`}>
+                      {isAdmin ? <><Shield size={12}/> Admin</> : userRole === 'staff' ? <><Activity size={12}/> Engineer</> : <><User size={12}/> Client</>}
+                    </span>
+                    <span className="text-slate-600 text-sm font-medium">Session: <b className={t.text}>{currentUser}</b></span>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-2">
-              {/* GOOGLE MAPS LOCATION BUTTON */}
-              <a href="https://www.google.com/maps/place/KRC+ELECTRONIC/@3.0434607,101.5977605,17z/data=!3m1!4b1!4m6!3m5!1s0x31cc4cb0942a27c7:0x280092f3b1e8a276!8m2!3d3.0434607!4d101.6003354!16s%2Fg%2F11bbt69cjm?entry=ttu&g_ep=EgoyMDI2MTAwNi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-300">
-                <MapPin size={16} /> Location
-              </a>
               
-              {isInternal && (
-                <button onClick={loadData} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-300">
-                  <RefreshCw size={16} className={isLoading ? "animate-spin text-slate-800" : ""} /> Sync
+              <div className="flex flex-wrap items-center gap-2">
+                <a href="https://www.google.com/maps/place/KRC+ELECTRONIC/@3.0434607,101.5977605,17z/data=!3m1!4b1!4m6!3m5!1s0x31cc4cb0942a27c7:0x280092f3b1e8a276!8m2!3d3.0434607!4d101.6003354!16s%2Fg%2F11bbt69cjm?entry=ttu&g_ep=EgoyMDI2MTAwNi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noreferrer" className={`flex items-center gap-2 text-slate-600 hover:${t.text} bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border ${t.border}`}>
+                  <MapPin size={16} /> Location
+                </a>
+                
+                {isInternal && (
+                  <button onClick={loadData} className={`flex items-center gap-2 text-slate-600 hover:${t.text} bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border ${t.border}`}>
+                    <RefreshCw size={16} className={isLoading ? `animate-spin ${t.text}` : ""} /> Sync
+                  </button>
+                )}
+                <button onClick={handleLogout} className={`flex items-center gap-2 text-slate-600 hover:text-white hover:${t.btn} bg-slate-200 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border ${t.border}`}>
+                  <LogOut size={16} /> Logout
                 </button>
-              )}
-              <button onClick={handleLogout} className="flex items-center gap-2 text-slate-600 hover:text-slate-100 hover:bg-slate-800 bg-slate-200 px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-slate-300">
-                <LogOut size={16} /> Logout
-              </button>
+              </div>
             </div>
+
+            {isInternal && (
+              <div className={`flex flex-col gap-6 border-t ${t.border} pt-6 mt-6`}>
+                {activeTab === 'board' && (
+                  <div className={`bg-white/50 p-5 rounded-2xl border ${t.border} shadow-sm relative z-40`}>
+                    <h3 className={`font-bold ${t.text} mb-4 flex items-center gap-2`}>
+                      {editingItem ? <Edit2 size={18} className="opacity-70"/> : <Plus size={18} className="opacity-70"/>} {editingItem ? 'Edit Job' : 'Create New Repair Job'}
+                    </h3>
+                    <form onSubmit={handleReceiveItem} className="flex flex-col gap-4 w-full">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} required/></div>
+                        <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} /></div>
+                        
+                        <div className="md:col-span-2 relative" ref={dropdownRef}>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Client Name" value={formData.clientName} onChange={(e) => { setFormData({...formData, clientName: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} autoComplete="off"/></div>
+                            <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Client Phone" value={formData.clientPhone} onChange={(e) => { setFormData({...formData, clientPhone: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} required autoComplete="off"/></div>
+                          </div>
+
+                          {showClientDropdown && (
+                            <div className={`absolute z-50 top-full left-0 w-full mt-2 bg-white border ${t.border} shadow-[0_10px_40px_rgb(0,0,0,0.15)] rounded-xl max-h-72 overflow-y-auto`}>
+                              {filteredClients.length > 0 && (
+                                <div className="p-2 flex flex-col gap-1">
+                                  <div className="px-3 py-2 text-[10px] font-bold uppercase text-slate-500">Existing Clients</div>
+                                  {filteredClients.map(client => (
+                                    <button key={client.username} type="button" onClick={() => { setFormData(prev => ({ ...prev, clientName: client.client_name || '', clientPhone: client.username })); setShowClientDropdown(false); }} className="flex justify-between items-center w-full px-3 py-2.5 hover:bg-slate-100 rounded-lg text-left">
+                                      <span className="font-semibold text-slate-800 text-sm flex items-center gap-2"><User size={14} className="text-slate-600"/> {client.client_name || 'Unknown'}</span>
+                                      <span className="font-mono text-xs text-slate-500 flex items-center gap-1"><Phone size={12}/> {client.username}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="relative md:col-span-2 flex flex-col gap-3">
+                          <div className="relative"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl bg-white text-sm`} /></div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="relative">
+                              <Wrench size={16} className="absolute left-4 top-3.5 text-slate-500" />
+                              <select value={formData.assigned_engineer || ''} onChange={(e) => setFormData({...formData, assigned_engineer: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm appearance-none cursor-pointer`}>
+                                <option value="">Assign Engineer (Optional)</option>
+                                {engineersList.map(eng => <option key={eng.username} value={eng.username}>{eng.client_name || eng.username}</option>)}
+                              </select>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <label className={`flex items-center gap-2 bg-white border ${t.border} text-slate-700 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-sm font-semibold shadow-sm w-full justify-center`}>
+                                <ImagePlus size={16} className="text-slate-600" /> {formData.photo ? 'Change Photo' : 'Attach Device Photo'}
+                                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                              </label>
+                              {formData.photo && (
+                                <div className={`relative border ${t.border} rounded-lg p-1 bg-white flex-none`}>
+                                  <img src={formData.photo} alt="Preview" className="h-10 w-10 object-cover rounded-md" />
+                                  <button type="button" onClick={() => setFormData({...formData, photo: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12}/></button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 mt-2 justify-end">
+                        {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' }) }} className="bg-slate-300 hover:bg-slate-400 text-slate-800 border border-slate-400 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
+                        <button type="submit" className={`${t.btn} ${t.hover} text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md text-sm transition-colors`}>{editingItem ? 'Save Updates' : 'Add Item'}</button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+                
+                <div className={`flex gap-2 w-full bg-white/50 p-1.5 rounded-xl self-start overflow-x-auto relative z-30 flex-nowrap border ${t.border}`}>
+                  <button onClick={() => setActiveTab('board')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><LayoutDashboard size={16} /> Pipeline View</button>
+                  <button onClick={() => setActiveTab('history')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'history' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><History size={16} /> Audit Explorer</button>
+                  {isAdmin && (
+                    <>
+                      <button onClick={() => setActiveTab('clients')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'clients' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Users size={16} /> Client Directory</button>
+                      <button onClick={() => setActiveTab('engineers')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'engineers' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Briefcase size={16} /> Staff Directory</button>
+                    </>
+                  )}
+                  <button onClick={() => setActiveTab('requests')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'requests' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}>
+                    <Inbox size={16} /> Incoming Requests 
+                    {requests.length > 0 && <span className={`ml-1.5 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full`}>{requests.length}</span>}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {isInternal && (
-            <div className="flex flex-col gap-6 border-t border-slate-300 pt-6 mt-6">
-              {activeTab === 'board' && (
-                <div className="bg-slate-200 p-5 rounded-2xl border border-slate-300 shadow-sm relative z-40">
-                  <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    {editingItem ? <Edit2 size={18} className="text-slate-600"/> : <Plus size={18} className="text-slate-700"/>} {editingItem ? 'Edit Job' : 'Create New Repair Job'}
-                  </h3>
-                  <form onSubmit={handleReceiveItem} className="flex flex-col gap-4 w-full">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm" required/></div>
-                      <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm" /></div>
-                      
-                      <div className="md:col-span-2 relative" ref={dropdownRef}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="relative"><User size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Client Name" value={formData.clientName} onChange={(e) => { setFormData({...formData, clientName: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm" autoComplete="off"/></div>
-                          <div className="relative"><Phone size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Client Phone" value={formData.clientPhone} onChange={(e) => { setFormData({...formData, clientPhone: e.target.value}); setShowClientDropdown(true); }} onFocus={() => setShowClientDropdown(true)} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm" required autoComplete="off"/></div>
-                        </div>
-
-                        {showClientDropdown && (
-                          <div className="absolute z-50 top-full left-0 w-full mt-2 bg-slate-50 border border-slate-300 shadow-[0_10px_40px_rgb(0,0,0,0.15)] rounded-xl max-h-72 overflow-y-auto">
-                            {filteredClients.length > 0 && (
-                              <div className="p-2 flex flex-col gap-1">
-                                <div className="px-3 py-2 text-[10px] font-bold uppercase text-slate-500">Existing Clients</div>
-                                {filteredClients.map(client => (
-                                  <button key={client.username} type="button" onClick={() => { setFormData(prev => ({ ...prev, clientName: client.client_name || '', clientPhone: client.username })); setShowClientDropdown(false); }} className="flex justify-between items-center w-full px-3 py-2.5 hover:bg-slate-200 rounded-lg text-left">
-                                    <span className="font-semibold text-slate-800 text-sm flex items-center gap-2"><User size={14} className="text-slate-600"/> {client.client_name || 'Unknown'}</span>
-                                    <span className="font-mono text-xs text-slate-500 flex items-center gap-1"><Phone size={12}/> {client.username}</span>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="relative md:col-span-2 flex flex-col gap-3">
-                        <div className="relative"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl bg-slate-50 text-sm" /></div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="relative">
-                            <Wrench size={16} className="absolute left-4 top-3.5 text-slate-500" />
-                            <select value={formData.assigned_engineer || ''} onChange={(e) => setFormData({...formData, assigned_engineer: e.target.value})} className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-slate-50 text-sm appearance-none cursor-pointer">
-                              <option value="">Assign Engineer (Optional)</option>
-                              {engineersList.map(eng => <option key={eng.username} value={eng.username}>{eng.client_name || eng.username}</option>)}
-                            </select>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <label className="flex items-center gap-2 bg-slate-100 border border-slate-300 text-slate-700 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-300 transition-colors text-sm font-semibold shadow-sm w-full justify-center">
-                              <ImagePlus size={16} className="text-slate-600" /> {formData.photo ? 'Change Photo' : 'Attach Device Photo'}
-                              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                            </label>
-                            {formData.photo && (
-                              <div className="relative border border-slate-300 rounded-lg p-1 bg-slate-100 flex-none">
-                                <img src={formData.photo} alt="Preview" className="h-10 w-10 object-cover rounded-md" />
-                                <button type="button" onClick={() => setFormData({...formData, photo: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12}/></button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 mt-2 justify-end">
-                      {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' }) }} className="bg-slate-300 hover:bg-slate-400 text-slate-800 border border-slate-400 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
-                      <button type="submit" className={`bg-slate-800 hover:bg-slate-900 text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md shadow-slate-400/50 text-sm`}>{editingItem ? 'Save Updates' : 'Add Item'}</button>
-                    </div>
-                  </form>
-                </div>
-              )}
-              
-              <div className="flex gap-2 w-full bg-slate-200/80 p-1 rounded-lg self-start overflow-x-auto relative z-30 flex-nowrap">
-                <button onClick={() => setActiveTab('board')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'board' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><LayoutDashboard size={16} /> Pipeline View</button>
-                <button onClick={() => setActiveTab('history')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'history' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><History size={16} /> Audit Explorer</button>
-                {isAdmin && (
-                  <>
-                    <button onClick={() => setActiveTab('clients')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'clients' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><Users size={16} /> Client Directory</button>
-                    <button onClick={() => setActiveTab('engineers')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'engineers' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}><Briefcase size={16} /> Staff Directory</button>
-                  </>
-                )}
-                <button onClick={() => setActiveTab('requests')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold ${activeTab === 'requests' ? 'bg-slate-100 text-slate-900 shadow-sm border border-slate-300' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300'}`}>
-                  <Inbox size={16} /> Incoming Requests 
-                  {requests.length > 0 && <span className="ml-1.5 bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded-full">{requests.length}</span>}
-                </button>
-              </div>
-            </div>
+          {!isInternal ? (
+            <CustomerDashboard items={items} currentUser={currentUser} updateItemData={updateItemData} />
+          ) : activeTab === 'history' ? (
+            <HistoryLog items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} getClientName={getClientName} supabase={supabase} />
+          ) : activeTab === 'clients' && isAdmin ? (
+            <ClientManagement usersDB={usersDB} setUsersDB={setUsersDB} items={items} setItems={setItems} isAdmin={isAdmin} supabase={supabase} />
+          ) : activeTab === 'engineers' && isAdmin ? (
+            <EngineerManagement usersDB={usersDB} setUsersDB={setUsersDB} isAdmin={isAdmin} supabase={supabase} />
+          ) : activeTab === 'requests' ? (
+            <RequestsManagement requests={requests} setRequests={setRequests} items={items} setItems={setItems} usersDB={usersDB} setUsersDB={setUsersDB} supabase={supabase} />
+          ) : (
+            <KanbanBoard items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} startEdit={startEdit} deleteItem={deleteItem} getClientName={getClientName} updateItemData={updateItemData} supabase={supabase} currentUser={currentUser} usersDB={usersDB} />
           )}
         </div>
-
-        {!isInternal ? (
-          <CustomerDashboard items={items} currentUser={currentUser} updateItemData={updateItemData} />
-        ) : activeTab === 'history' ? (
-          <HistoryLog items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} getClientName={getClientName} supabase={supabase} />
-        ) : activeTab === 'clients' && isAdmin ? (
-          <ClientManagement usersDB={usersDB} setUsersDB={setUsersDB} items={items} setItems={setItems} isAdmin={isAdmin} supabase={supabase} />
-        ) : activeTab === 'engineers' && isAdmin ? (
-          <EngineerManagement usersDB={usersDB} setUsersDB={setUsersDB} isAdmin={isAdmin} supabase={supabase} />
-        ) : activeTab === 'requests' ? (
-          <RequestsManagement requests={requests} setRequests={setRequests} items={items} setItems={setItems} usersDB={usersDB} setUsersDB={setUsersDB} supabase={supabase} />
-        ) : (
-          <KanbanBoard items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} startEdit={startEdit} deleteItem={deleteItem} getClientName={getClientName} updateItemData={updateItemData} supabase={supabase} currentUser={currentUser} usersDB={usersDB} />
-        )}
-      </div>
+      )}
     </div>
   );
 }
