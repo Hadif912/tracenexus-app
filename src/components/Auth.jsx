@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, User, Lock, Phone, Eye, EyeOff, Tag, AlignLeft, Send, Info } from 'lucide-react';
+import { Package, User, Lock, Phone, Eye, EyeOff, Tag, AlignLeft, Send, Info, MapPin, Star } from 'lucide-react';
 import companyLogo from '../assets/logo.png';
 import slide1 from '../assets/hero1.png';
 import slide2 from '../assets/hero2.png';
@@ -129,13 +129,13 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   }
 
   return (
-    // Removed the background color from here because App.jsx handles the global background now
     <div className="min-h-screen flex items-center justify-center p-4 md:p-8 transition-colors duration-500 relative">
       <div className={`${t.card} rounded-3xl shadow-2xl w-full max-w-6xl flex flex-col lg:flex-row overflow-hidden border ${t.border} min-h-[650px] transition-colors duration-500`}>
         
         {/* Left Panel: Form */}
-        <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col justify-center relative">
-          <div className="max-w-md w-full mx-auto">
+        <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col relative">
+          <div className="max-w-md w-full mx-auto flex-1 flex flex-col justify-center">
+            
             <div className="text-center mb-10">
               <div className={`w-20 h-20 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm overflow-hidden flex-none bg-white border ${t.border}`}>
                 <img src={companyLogo} alt="Company Logo" className="w-full h-full object-contain p-2" />
@@ -198,6 +198,24 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
                 <button type="button" onClick={() => setAuthMode('request')} className={`w-full mt-4 bg-white hover:bg-slate-50 border ${t.border} ${t.text} py-3.5 rounded-xl font-bold transition-colors`}>Want to repair an item? Submit request</button>
               </form>
             )}
+
+            {/* NEW: Informative Footer Section */}
+            <div className={`mt-10 pt-6 border-t ${t.border} flex flex-col gap-3 text-xs text-slate-500 font-medium`}>
+              <div className="flex items-center gap-2">
+                <MapPin size={14} className="text-slate-400" />
+                <span>KRC Electronic, Cheras, Selangor, Malaysia</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#fbbf24" className="text-amber-400" />)}
+                </div>
+                <span>4.9/5 Average Rating from Verified Customers</span>
+              </div>
+              <div className="mt-2 text-slate-400">
+                &copy; {new Date().getFullYear()} Track & Trace System. Developed by Hadif (KYPD Cohort 8).
+              </div>
+            </div>
+
           </div>
         </div>
 
