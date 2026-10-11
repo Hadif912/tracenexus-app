@@ -232,27 +232,27 @@ export default function App() {
               </div>
             </div>
 
-            {/* TAB BAR FOR EVERYONE */}
-            <div className={`flex gap-2 w-full bg-white/50 p-1.5 rounded-xl self-start overflow-x-auto relative z-30 flex-nowrap border ${t.border} mt-6`}>
+            {/* TAB BAR FOR EVERYONE - UPDATED FOR WRAPPING */}
+            <div className={`flex flex-wrap gap-2 w-full bg-white/50 p-2 rounded-xl self-start relative z-30 border ${t.border} mt-6`}>
               {isInternal ? (
                 <>
-                  <button onClick={() => setActiveTab('board')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><LayoutDashboard size={16} /> Pipeline View</button>
-                  <button onClick={() => setActiveTab('history')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'history' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><History size={16} /> Audit Explorer</button>
+                  <button onClick={() => setActiveTab('board')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><LayoutDashboard size={16} /> Pipeline View</button>
+                  <button onClick={() => setActiveTab('history')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'history' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><History size={16} /> Audit Explorer</button>
                   {isAdmin && (
                     <>
-                      <button onClick={() => setActiveTab('clients')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'clients' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Users size={16} /> Client Directory</button>
-                      <button onClick={() => setActiveTab('engineers')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'engineers' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Briefcase size={16} /> Staff Directory</button>
+                      <button onClick={() => setActiveTab('clients')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'clients' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Users size={16} /> Client Directory</button>
+                      <button onClick={() => setActiveTab('engineers')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'engineers' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Briefcase size={16} /> Staff Directory</button>
                     </>
                   )}
-                  <button onClick={() => setActiveTab('requests')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'requests' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}>
+                  <button onClick={() => setActiveTab('requests')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'requests' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}>
                     <Inbox size={16} /> Incoming Requests 
                     {requests.length > 0 && <span className={`ml-1.5 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full`}>{requests.length}</span>}
                   </button>
                 </>
               ) : (
-                <button onClick={() => setActiveTab('board')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Package size={16} /> My Repairs</button>
+                <button onClick={() => setActiveTab('board')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Package size={16} /> My Repairs</button>
               )}
-              <button onClick={() => setActiveTab('reviews')} className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'reviews' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Star size={16} /> Reviews</button>
+              <button onClick={() => setActiveTab('reviews')} className={`flex-auto md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition-all ${activeTab === 'reviews' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Star size={16} /> Reviews</button>
             </div>
           </div>
 
