@@ -1,18 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Package, User, Lock, Phone, Eye, EyeOff, Save, Tag, AlignLeft, Send, Info, Palette } from 'lucide-react';
+import { Package, User, Lock, Phone, Eye, EyeOff, Tag, AlignLeft, Send, Info } from 'lucide-react';
 import companyLogo from '../assets/logo.png';
 import slide1 from '../assets/hero1.png';
 import slide2 from '../assets/hero2.png';
 import slide3 from '../assets/hero3.png';
 
-const THEMES = {
-  slate: { bg: 'bg-slate-300', card: 'bg-slate-100', btn: 'bg-slate-800', hover: 'hover:bg-slate-900', text: 'text-slate-900', border: 'border-slate-300', dot: 'bg-slate-500' },
-  blue: { bg: 'bg-sky-200', card: 'bg-sky-50', btn: 'bg-sky-600', hover: 'hover:bg-sky-700', text: 'text-sky-900', border: 'border-sky-200', dot: 'bg-sky-500' },
-  petronas: { bg: 'bg-teal-200', card: 'bg-teal-50', btn: 'bg-teal-700', hover: 'hover:bg-teal-800', text: 'text-teal-900', border: 'border-teal-200', dot: 'bg-teal-500' },
-  purple: { bg: 'bg-purple-200', card: 'bg-purple-50', btn: 'bg-purple-700', hover: 'hover:bg-purple-800', text: 'text-purple-900', border: 'border-purple-200', dot: 'bg-purple-500' }
-};
-
-export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser, addRequest, supabase }) {
+// Notice `t` is now received as a prop from App.jsx
+export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser, addRequest, supabase, t }) {
   const [authMode, setAuthMode] = useState('login'); 
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
@@ -26,22 +20,12 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   const [showRequestPassword, setShowRequestPassword] = useState(false);
   const [isUsernameFocused, setIsUsernameFocused] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  
-  // NEW: State for the theme switcher menu
-  const [showThemes, setShowThemes] = useState(false);
-
-  const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('krc_theme') || 'slate');
-  const t = THEMES[activeTheme];
 
   const slides = [
     { url: slide1, title: 'Precision Component Repair', subtitle: 'Advanced diagnostics for industrial electronics.' },
     { url: slide2, title: 'Expert Engineering Team', subtitle: 'Dedicated technicians handling your equipment.' },
     { url: slide3, title: 'Quality Assurance', subtitle: 'Rigorous testing before deployment.' }
   ];
-
-  useEffect(() => {
-    localStorage.setItem('krc_theme', activeTheme);
-  }, [activeTheme]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % slides.length), 5000);
@@ -130,7 +114,7 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
 
   if (pendingPasswordChange) {
     return (
-      <div className={`min-h-screen flex items-center justify-center p-4 transition-colors duration-500 ${t.bg}`}>
+      <div className="min-h-screen flex items-center justify-center p-4 transition-colors duration-500">
         <div className={`${t.card} p-10 rounded-2xl max-w-md w-full shadow-lg border ${t.border}`}>
           <h1 className={`text-2xl font-extrabold ${t.text} mb-6 text-center`}>Secure Your Account</h1>
           {authError && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm text-center">{authError}</div>}
@@ -145,29 +129,8 @@ export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser,
   }
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 md:p-8 transition-colors duration-500 relative ${t.bg}`}>
-      
-      {/* NEW: Unfoldable Theme Switcher Top Right */}
-      <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 z-50">
-        <div className={`flex items-center gap-2 bg-white/70 backdrop-blur-md rounded-full shadow-sm border border-white/50 transition-all duration-300 ease-in-out ${showThemes ? 'max-w-[200px] px-3 py-2 opacity-100 translate-x-0' : 'max-w-0 opacity-0 p-0 border-transparent translate-x-4 pointer-events-none'}`}>
-          {Object.keys(THEMES).map(themeName => (
-            <button 
-              key={themeName} 
-              onClick={() => setActiveTheme(themeName)}
-              className={`w-6 h-6 rounded-full border-2 transition-all flex-none ${activeTheme === themeName ? 'border-slate-800 scale-110' : 'border-transparent hover:scale-110'} ${THEMES[themeName].dot}`}
-              title={`Switch to ${themeName} theme`}
-            />
-          ))}
-        </div>
-        <button 
-          onClick={() => setShowThemes(!showThemes)} 
-          className={`p-3 rounded-full shadow-sm border transition-all duration-300 flex items-center justify-center ${showThemes ? 'bg-white border-white' : 'bg-white/70 border-white/50 backdrop-blur-md hover:bg-white'}`}
-          title="Change Theme"
-        >
-          <Palette size={20} className="text-slate-700" />
-        </button>
-      </div>
-
+    // Removed the background color from here because App.jsx handles the global background now
+    <div className="min-h-screen flex items-center justify-center p-4 md:p-8 transition-colors duration-500 relative">
       <div className={`${t.card} rounded-3xl shadow-2xl w-full max-w-6xl flex flex-col lg:flex-row overflow-hidden border ${t.border} min-h-[650px] transition-colors duration-500`}>
         
         {/* Left Panel: Form */}
