@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Package, User, Lock, Phone, Eye, EyeOff, Save, Tag, AlignLeft, Send, Info } from 'lucide-react';
 import companyLogo from '../assets/logo.png';
-import slide1 from '../assets/slide1.png';
-import slide2 from '../assets/slide2.png';
-import slide3 from '../assets/slide3.png';
+import slide1 from '../assets/hero1.png';
+import slide2 from '../assets/hero2.png';
+import slide3 from '../assets/hero3.png';
 
 export default function Auth({ usersDB, setUsersDB, setUserRole, setCurrentUser, addRequest, supabase }) {
   const [authMode, setAuthMode] = useState('login'); 
