@@ -38,7 +38,6 @@ export default function App() {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // NEW: State to manage the Public Reviews view without logging in
   const [showPublicReviews, setShowPublicReviews] = useState(false);
   
   const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' });
@@ -122,7 +121,7 @@ export default function App() {
 
   const handleReceiveItem = async (e) => {
     e.preventDefault();
-    if (!formData.itemName.trim() || !formData.clientPhone.trim() || !isInternal) return alert("Required fields missing!");
+    if (!formData.itemName.trim() || !formData.clientPhone.trim() || !isAdmin) return alert("Required fields missing or unauthorized!");
 
     let existingCustomer = usersDB.find(u => u.username === formData.clientPhone);
     if (!existingCustomer) {
@@ -162,7 +161,7 @@ export default function App() {
   };
 
   const startEdit = (item) => {
-    if (!isInternal) return;
+    if (!isAdmin) return;
     setEditingItem(item);
     setFormData({ itemName: item.name || '', itemBrand: item.brand || '', clientPhone: item.owner || '', clientName: getClientName(item.owner) || '', description: item.description || '', photo: null, assigned_engineer: item.assigned_engineer || '' });
     setActiveTab('board');
@@ -196,7 +195,6 @@ export default function App() {
         </button>
       </div>
 
-      {/* RENDER PUBLIC REVIEWS VIEW OR LOGIN */}
       {showPublicReviews ? (
         <div className="p-4 md:p-8 max-w-6xl mx-auto w-full pt-20 md:pt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="mb-6 flex justify-start">
@@ -273,8 +271,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* INTERNAL FORM - ONLY SHOWS ON BOARD TAB */}
-          {isInternal && activeTab === 'board' && (
+          {/* ADMIN FORM - ONLY SHOWS ON BOARD TAB FOR ADMINS */}
+          {isAdmin && activeTab === 'board' && (
             <div className={`bg-white/50 p-5 rounded-2xl border ${t.border} shadow-sm relative z-40 mb-6`}>
               <h3 className={`font-bold ${t.text} mb-4 flex items-center gap-2`}>
                 {editingItem ? <Edit2 size={18} className="opacity-70"/> : <Plus size={18} className="opacity-70"/>} {editingItem ? 'Edit Job' : 'Create New Repair Job'}
