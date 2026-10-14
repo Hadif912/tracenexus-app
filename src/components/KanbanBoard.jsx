@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { STAGES, STAGE_CONFIG } from '../constants';
-import { Package, Edit2, Trash2, User, ImageIcon, X, ArrowLeft, ArrowRight, CheckCircle2, Wrench, Layers, AlertCircle, Inbox, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Package, Edit2, Trash2, User, ImageIcon, X, ArrowLeft, ArrowRight, CheckCircle2, Wrench, Layers, AlertCircle, Inbox, Briefcase, ChevronLeft, ChevronRight, Info, Hash } from 'lucide-react';
 
 export default function KanbanBoard({ items, setItems, isAdmin, isInternal, startEdit, deleteItem, getClientName, updateItemData, supabase, currentUser, usersDB }) {
   const [viewingPhoto, setViewingPhoto] = useState(null); 
@@ -177,11 +177,17 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
                     <div className={`absolute top-0 left-0 w-full h-1.5 ${config.badge.split(' ')[0]}`}></div>
 
                     <div>
-                      {item.photo && (
-                        <button onClick={() => setViewingPhoto(item.photo)} className="mb-5 w-full flex items-center justify-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 border border-slate-300 py-2.5 rounded-xl text-xs font-bold transition-colors">
-                          <ImageIcon size={16} /> View Device Photo
+                      {/* NEW: Side-by-side Details and Photo buttons */}
+                      <div className="flex gap-2 mb-5">
+                        <button onClick={() => setViewingJob(item)} className="flex-1 flex items-center justify-center gap-2 bg-slate-200 hover:bg-blue-100 hover:text-blue-700 hover:border-blue-300 text-slate-800 border border-slate-300 py-2.5 rounded-xl text-xs font-bold transition-colors">
+                          <Info size={16} /> Details
                         </button>
-                      )}
+                        {item.photo && (
+                          <button onClick={() => setViewingPhoto(item.photo)} className="flex-1 flex items-center justify-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 border border-slate-300 py-2.5 rounded-xl text-xs font-bold transition-colors">
+                            <ImageIcon size={16} /> Photo
+                          </button>
+                        )}
+                      </div>
 
                       <div className="flex justify-between items-start mb-4">
                         <span className={`text-xs font-mono font-bold px-3 py-1.5 rounded-lg border tracking-wide shadow-sm ${config.badge} border-transparent`}>{item.id}</span>
@@ -333,15 +339,26 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
                 <p className="text-lg font-bold text-slate-800 leading-tight mt-0.5">{viewingJob.name}</p>
               </div>
               
-              {viewingJob.brand && (
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Brand</span>
-                  <p className="font-semibold text-slate-700 text-sm mt-0.5">{viewingJob.brand}</p>
-                </div>
-              )}
+              <div className="grid grid-cols-2 gap-4">
+                {viewingJob.brand && (
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Brand</span>
+                    <p className="font-semibold text-slate-700 text-sm mt-0.5">{viewingJob.brand}</p>
+                  </div>
+                )}
+                
+                {/* NEW: Render Serial / Service Number */}
+                {viewingJob.serial_number && (
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Serial / Service Number</span>
+                    <p className="font-semibold text-slate-700 text-sm mt-0.5 flex items-center gap-1.5">
+                      <Hash size={14} className="text-slate-400"/> {viewingJob.serial_number}
+                    </p>
+                  </div>
+                )}
+              </div>
               
               <div>
-                {/* Note: The phone number (viewingJob.owner) is deliberately hidden here for privacy */}
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Customer Name</span>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center"><User size={12} className="text-slate-500"/></div>
@@ -359,12 +376,15 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
               </div>
             </div>
 
-            <button 
-              onClick={() => handleTakeJob(viewingJob)} 
-              className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg shadow-slate-900/20 flex justify-center items-center gap-2 transition-all transform hover:scale-[1.02]"
-            >
-              <Briefcase size={18} /> Take This Job
-            </button>
+            {/* ONLY show 'Take This Job' if the job has not been assigned to anyone yet */}
+            {!viewingJob.assigned_engineer && (
+              <button 
+                onClick={() => handleTakeJob(viewingJob)} 
+                className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg shadow-slate-900/20 flex justify-center items-center gap-2 transition-all transform hover:scale-[1.02]"
+              >
+                <Briefcase size={18} /> Take This Job
+              </button>
+            )}
           </div>
         </div>
       )}

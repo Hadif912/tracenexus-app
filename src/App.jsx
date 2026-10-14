@@ -9,7 +9,7 @@ import ClientManagement from './components/ClientManagement';
 import RequestsManagement from './components/RequestsManagement';
 import EngineerManagement from './components/EngineerManagement';
 import Reviews from './components/Reviews';
-import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench, Briefcase, Palette, Star } from 'lucide-react';
+import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench, Briefcase, Palette, Star, Hash } from 'lucide-react';
 
 const THEMES = {
   slate: { bg: 'bg-slate-300', card: 'bg-slate-100', btn: 'bg-slate-800', hover: 'hover:bg-slate-900', text: 'text-slate-900', border: 'border-slate-300', dot: 'bg-slate-500' },
@@ -40,7 +40,7 @@ export default function App() {
   
   const [showPublicReviews, setShowPublicReviews] = useState(false);
   
-  const [formData, setFormData] = useState({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' });
+  const [formData, setFormData] = useState({ itemName: '', itemBrand: '', serialNumber: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' });
   const [editingItem, setEditingItem] = useState(null);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const dropdownRef = useRef(null); 
@@ -134,21 +134,41 @@ export default function App() {
     }
 
     if (editingItem) {
-      const updates = { name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone, photo: formData.photo || editingItem.photo, assigned_engineer: formData.assigned_engineer };
+      const updates = { 
+        name: formData.itemName, 
+        brand: formData.itemBrand, 
+        serial_number: formData.serialNumber,
+        description: formData.description, 
+        owner: formData.clientPhone, 
+        photo: formData.photo || editingItem.photo, 
+        assigned_engineer: formData.assigned_engineer 
+      };
       await supabase.from('items').update(updates).eq('id', editingItem.id);
       setItems(items.map(i => i.id === editingItem.id ? { ...i, ...updates } : i));
       setEditingItem(null);
     } else {
       const newItemId = `REP-${Math.floor(1000 + Math.random() * 9000)}`;
       const newItem = { 
-        id: newItemId, name: formData.itemName, brand: formData.itemBrand, description: formData.description, owner: formData.clientPhone, photo: formData.photo, assigned_engineer: formData.assigned_engineer,
-        stage: 'Receiving', problem: '', price: '', client_decision: 'Pending', repair_status: 'In Progress', outbound_status: 'In Inventory'
+        id: newItemId, 
+        name: formData.itemName, 
+        brand: formData.itemBrand, 
+        serial_number: formData.serialNumber,
+        description: formData.description, 
+        owner: formData.clientPhone, 
+        photo: formData.photo, 
+        assigned_engineer: formData.assigned_engineer,
+        stage: 'Receiving', 
+        problem: '', 
+        price: '', 
+        client_decision: 'Pending', 
+        repair_status: 'In Progress', 
+        outbound_status: 'In Inventory'
       };
       await supabase.from('items').insert([newItem]);
       const { data: newLog } = await supabase.from('history_logs').insert([{ item_id: newItemId, stage: 'Receiving' }]).select().single();
       setItems([...items, { ...newItem, history: newLog ? [newLog] : [] }]);
     }
-    setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' });
+    setFormData({ itemName: '', itemBrand: '', serialNumber: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' });
     setShowClientDropdown(false);
   };
 
@@ -163,7 +183,16 @@ export default function App() {
   const startEdit = (item) => {
     if (!isAdmin) return;
     setEditingItem(item);
-    setFormData({ itemName: item.name || '', itemBrand: item.brand || '', clientPhone: item.owner || '', clientName: getClientName(item.owner) || '', description: item.description || '', photo: null, assigned_engineer: item.assigned_engineer || '' });
+    setFormData({ 
+      itemName: item.name || '', 
+      itemBrand: item.brand || '', 
+      serialNumber: item.serial_number || '',
+      clientPhone: item.owner || '', 
+      clientName: getClientName(item.owner) || '', 
+      description: item.description || '', 
+      photo: null, 
+      assigned_engineer: item.assigned_engineer || '' 
+    });
     setActiveTab('board');
   };
 
@@ -279,8 +308,9 @@ export default function App() {
               </h3>
               <form onSubmit={handleReceiveItem} className="flex flex-col gap-4 w-full">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="relative"><Package size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} required/></div>
+                  <div className="relative md:col-span-2"><Package size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Device/Item Name" value={formData.itemName} onChange={(e) => setFormData({...formData, itemName: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} required/></div>
                   <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} /></div>
+                  <div className="relative"><Hash size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Serial / Service Number" value={formData.serialNumber} onChange={(e) => setFormData({...formData, serialNumber: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} /></div>
                   
                   <div className="md:col-span-2 relative" ref={dropdownRef}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -333,7 +363,7 @@ export default function App() {
                 </div>
 
                 <div className="flex gap-3 mt-2 justify-end">
-                  {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' }) }} className="bg-slate-300 hover:bg-slate-400 text-slate-800 border border-slate-400 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
+                  {editingItem && <button type="button" onClick={() => { setEditingItem(null); setFormData({ itemName: '', itemBrand: '', serialNumber: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '' }) }} className="bg-slate-300 hover:bg-slate-400 text-slate-800 border border-slate-400 px-6 py-2.5 rounded-xl font-semibold text-sm">Cancel Edit</button>}
                   <button type="submit" className={`${t.btn} ${t.hover} text-white px-8 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-md text-sm transition-colors`}>{editingItem ? 'Save Updates' : 'Add Item'}</button>
                 </div>
               </form>
