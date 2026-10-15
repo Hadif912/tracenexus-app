@@ -9,7 +9,8 @@ import ClientManagement from './components/ClientManagement';
 import RequestsManagement from './components/RequestsManagement';
 import EngineerManagement from './components/EngineerManagement';
 import Reviews from './components/Reviews';
-import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench, Briefcase, Palette, Star, Hash, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
+import SummaryStatistics from './components/SummaryStatistics'; 
+import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench, Briefcase, Palette, Star, Hash, Calendar, ChevronDown, ChevronUp, PieChart } from 'lucide-react'; 
 
 const THEMES = {
   slate: { bg: 'bg-slate-300', card: 'bg-slate-100', btn: 'bg-slate-800', hover: 'hover:bg-slate-900', text: 'text-slate-900', border: 'border-slate-300', dot: 'bg-slate-500' },
@@ -40,10 +41,8 @@ export default function App() {
   
   const [showPublicReviews, setShowPublicReviews] = useState(false);
   
-  // NEW: State to track if the Admin Form is expanded or collapsed
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // Helper function to get today's date in YYYY-MM-DD format
   const getTodayDate = () => new Date().toISOString().split('T')[0];
 
   const [formData, setFormData] = useState({ 
@@ -179,7 +178,6 @@ export default function App() {
       setItems([...items, { ...newItem, history: newLog ? [newLog] : [] }]);
     }
     
-    // Reset form and collapse it
     setFormData({ itemName: '', itemBrand: '', serialNumber: '', clientName: '', clientPhone: '', description: '', photo: null, assigned_engineer: '', intakeDate: getTodayDate() });
     setShowClientDropdown(false);
     setIsFormOpen(false); 
@@ -207,7 +205,7 @@ export default function App() {
       assigned_engineer: item.assigned_engineer || '',
       intakeDate: item.intake_date || getTodayDate()
     });
-    setIsFormOpen(true); // Auto-expand form when editing
+    setIsFormOpen(true); 
     setActiveTab('board');
   };
 
@@ -286,18 +284,20 @@ export default function App() {
             </div>
 
             <div className={`grid gap-2 w-full bg-white/50 p-1.5 rounded-xl relative z-30 border ${t.border} mt-6 ${
-              isAdmin ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6' : 
+              isAdmin ? 'grid-cols-2 md:grid-cols-4 lg:grid-cols-7' : 
               isInternal ? 'grid-cols-2 lg:grid-cols-4' : 
               'grid-cols-2'
             }`}>
               {isInternal ? (
                 <>
-                  <button onClick={() => setActiveTab('board')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><LayoutDashboard size={16} className="shrink-0" /> <span className="truncate">Pipeline View</span></button>
+                  {/* CHANGED PIPELINE VIEW TO KANBAN BOARD */}
+                  <button onClick={() => setActiveTab('board')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><LayoutDashboard size={16} className="shrink-0" /> <span className="truncate">Kanban Board</span></button>
                   <button onClick={() => setActiveTab('history')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'history' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><History size={16} className="shrink-0" /> <span className="truncate">Audit Explorer</span></button>
                   {isAdmin && (
                     <>
                       <button onClick={() => setActiveTab('clients')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'clients' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Users size={16} className="shrink-0" /> <span className="truncate">Client Directory</span></button>
                       <button onClick={() => setActiveTab('engineers')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'engineers' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Briefcase size={16} className="shrink-0" /> <span className="truncate">Staff Directory</span></button>
+                      <button onClick={() => setActiveTab('statistics')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'statistics' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><PieChart size={16} className="shrink-0" /> <span className="truncate">Analytics</span></button>
                     </>
                   )}
                   <button onClick={() => setActiveTab('requests')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'requests' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}>
@@ -312,7 +312,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* ADMIN FORM - NOW COLLAPSIBLE */}
           {isAdmin && activeTab === 'board' && (
             <div className={`bg-white/50 p-5 rounded-2xl border ${t.border} shadow-sm relative z-40 mb-6 transition-all duration-300`}>
               
@@ -342,7 +341,6 @@ export default function App() {
                     <div className="relative"><Tag size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Brand" value={formData.itemBrand} onChange={(e) => setFormData({...formData, itemBrand: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} /></div>
                     <div className="relative"><Hash size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Serial / Service Number" value={formData.serialNumber} onChange={(e) => setFormData({...formData, serialNumber: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm`} /></div>
                     
-                    {/* NEW DATE INPUT */}
                     <div className="relative">
                       <Calendar size={16} className="absolute left-4 top-3.5 text-slate-500" />
                       <input type="date" value={formData.intakeDate} onChange={(e) => setFormData({...formData, intakeDate: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl focus:ring-2 focus:ring-slate-500/20 bg-white text-sm font-medium text-slate-700`} required/>
@@ -372,7 +370,6 @@ export default function App() {
                     </div>
 
                     <div className="relative md:col-span-2 flex flex-col gap-3">
-                      {/* UPDATED PLACEHOLDER */}
                       <div className="relative"><AlignLeft size={16} className="absolute left-4 top-3.5 text-slate-500" /><input type="text" placeholder="Description / Problem mentioned by client" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className={`w-full pl-11 pr-4 py-3 border ${t.border} rounded-xl bg-white text-sm`} /></div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -411,6 +408,8 @@ export default function App() {
           {/* MAIN RENDER BLOCK */}
           {activeTab === 'reviews' ? (
             <Reviews usersDB={usersDB} currentUser={currentUser} userRole={userRole} supabase={supabase} t={t} items={items} />
+          ) : activeTab === 'statistics' && isAdmin ? (
+            <SummaryStatistics items={items} t={t} /> 
           ) : !isInternal ? (
             <CustomerDashboard items={items} currentUser={currentUser} updateItemData={updateItemData} />
           ) : activeTab === 'history' ? (

@@ -8,18 +8,15 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
   
   const [viewingJob, setViewingJob] = useState(null);
   
-  // Quotation Modal State
   const [quotationModalJob, setQuotationModalJob] = useState(null);
   const [tempQuotation, setTempQuotation] = useState('');
   
-  // Pagination, Sorting & Grouping State
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('date'); 
   const [groupBy, setGroupBy] = useState('none'); 
   const [expandedGroup, setExpandedGroup] = useState(null); 
   const jobsPerPage = 10;
 
-  // Reset expanded group when changing stages
   useEffect(() => {
     setExpandedGroup(null);
   }, [activeStage, groupBy]);
@@ -216,7 +213,6 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
               {isAdmin ? (
                 <div className="bg-white p-4 rounded-xl border border-slate-300 shadow-sm flex flex-col gap-3">
                   
-                  {/* TITLE AND EDIT ICON ROW */}
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-1">
                     <div className="flex items-center gap-2">
                       <FileText size={16} className="text-slate-600" />
@@ -236,7 +232,6 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
                     )}
                   </div>
                   
-                  {/* QUOTATION TEXT OR CREATE BUTTON */}
                   {!item.quotation ? (
                     <button 
                       onClick={() => {
@@ -253,7 +248,6 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
                     </div>
                   )}
                   
-                  {/* DECISION DROPDOWN */}
                   <select 
                     onChange={(e) => handleClientDecision(item, e.target.value)} 
                     value="" 
@@ -318,7 +312,6 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
             </div>
           )}
 
-          {/* NAVIGATION BUTTONS - Now fully visible on all stages */}
           <div className="flex gap-2 mt-2 pt-4 border-t border-slate-200">
             <button 
               onClick={() => moveItemBackward(item.id, activeStage)} 
@@ -429,7 +422,8 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
               <Layers size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">{!isAdmin ? 'My Pipeline: ' : ''}{activeStage} Process</h2>
+              {/* UPDATED TITLE TEXT */}
+              <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">{!isAdmin ? 'My Kanban Board: ' : ''}{activeStage} Process</h2>
               <p className="text-sm font-medium text-slate-500">Currently managing {stageItems.length} active item{stageItems.length !== 1 && 's'} in this queue.</p>
             </div>
           </div>
@@ -502,7 +496,8 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
               <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-sm ${config.bg} ${config.text} border ${config.border} opacity-50`}>
                 <CheckCircle2 size={40} />
               </div>
-              <h3 className="text-xl font-extrabold text-slate-700 mb-2">Pipeline is Empty</h3>
+              {/* UPDATED EMPTY STATE TEXT */}
+              <h3 className="text-xl font-extrabold text-slate-700 mb-2">Kanban Board is Empty</h3>
               <p className="text-slate-500 font-medium max-w-md">
                 {!isAdmin ? "You have no assigned items in this stage. Check the Available Jobs above to claim new work!" : `There are currently no items in the ${activeStage} stage.`}
               </p>
@@ -628,7 +623,6 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
         </div>
       )}
 
-      {/* Full Screen Photo Modal Overlay */}
       {viewingPhoto && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/80 p-4 backdrop-blur-sm" onClick={() => setViewingPhoto(null)}>
           <div className="relative bg-slate-100 p-2 rounded-2xl max-w-4xl w-full shadow-2xl" onClick={e => e.stopPropagation()}>
