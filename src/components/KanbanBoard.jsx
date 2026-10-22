@@ -233,12 +233,12 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
                          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 bg-slate-100/50">
                             {groupedItems[groupKey].map(item => (
                               <KanbanCard 
-                                key={item.id} item={item} config={config} activeStage={activeStage} stageIndex={stageIndex} 
-                                isAdmin={isAdmin} currentUser={currentUser} getClientName={getClientName} getEngineerName={getEngineerName} 
-                                startEdit={startEdit} deleteItem={deleteItem} updateItemData={updateItemData} setViewingJob={setViewingJob} 
-                                setViewingPhoto={setViewingPhoto} setQuotationModalJob={setQuotationModalJob} handleClientDecision={handleClientDecision} 
-                                moveItemBackward={moveItemBackward} moveItemForward={moveItemForward}
-                              />
+  key={item.id} item={item} config={config} activeStage={activeStage} stageIndex={stageIndex} 
+  isAdmin={isAdmin} currentUser={currentUser} getClientName={getClientName} getEngineerName={getEngineerName} 
+  startEdit={startEdit} deleteItem={deleteItem} updateItemData={updateItemData} setViewingJob={setViewingJob} 
+  setViewingPhoto={setViewingPhoto} setQuotationModalJob={setQuotationModalJob} handleClientDecision={handleClientDecision} 
+  moveItemBackward={moveItemBackward} moveItemForward={moveItemForward} supabase={supabase}
+/>
                             ))}
                          </div>
                       )}
@@ -249,12 +249,12 @@ export default function KanbanBoard({ items, setItems, isAdmin, isInternal, star
               <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8`}>
                 {stageItems.map(item => (
                   <KanbanCard 
-                    key={item.id} item={item} config={config} activeStage={activeStage} stageIndex={stageIndex} 
-                    isAdmin={isAdmin} currentUser={currentUser} getClientName={getClientName} getEngineerName={getEngineerName} 
-                    startEdit={startEdit} deleteItem={deleteItem} updateItemData={updateItemData} setViewingJob={setViewingJob} 
-                    setViewingPhoto={setViewingPhoto} setQuotationModalJob={setQuotationModalJob} handleClientDecision={handleClientDecision} 
-                    moveItemBackward={moveItemBackward} moveItemForward={moveItemForward}
-                  />
+  key={item.id} item={item} config={config} activeStage={activeStage} stageIndex={stageIndex} 
+  isAdmin={isAdmin} currentUser={currentUser} getClientName={getClientName} getEngineerName={getEngineerName} 
+  startEdit={startEdit} deleteItem={deleteItem} updateItemData={updateItemData} setViewingJob={setViewingJob} 
+  setViewingPhoto={setViewingPhoto} setQuotationModalJob={setQuotationModalJob} handleClientDecision={handleClientDecision} 
+  moveItemBackward={moveItemBackward} moveItemForward={moveItemForward} supabase={supabase}
+/>
                 ))}
               </div>
             )

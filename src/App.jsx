@@ -6,11 +6,10 @@ import KanbanBoard from './components/KanbanBoard';
 import HistoryLog from './components/HistoryLog';
 import CustomerDashboard from './components/CustomerDashboard';
 import ClientManagement from './components/ClientManagement';
-import RequestsManagement from './components/RequestsManagement';
 import EngineerManagement from './components/EngineerManagement';
-import Reviews from './components/Reviews';
 import SummaryStatistics from './components/SummaryStatistics'; 
-import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, Inbox, RefreshCw, MapPin, Wrench, Briefcase, Palette, Star, Hash, Calendar, ChevronDown, ChevronUp, PieChart } from 'lucide-react'; 
+import Inventory3D from './components/Inventory3D'; // NEW IMPORT
+import { Shield, Activity, User, LogOut, LayoutDashboard, History, Plus, Edit2, Package, Tag, Phone, AlignLeft, Users, ImagePlus, X, RefreshCw, MapPin, Wrench, Briefcase, Palette, Hash, Calendar, ChevronDown, ChevronUp, PieChart, Box } from 'lucide-react'; // ADDED Box ICON
 
 const THEMES = {
   slate: { bg: 'bg-slate-300', card: 'bg-slate-100', btn: 'bg-slate-800', hover: 'hover:bg-slate-900', text: 'text-slate-900', border: 'border-slate-300', dot: 'bg-slate-500' },
@@ -36,10 +35,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('board'); 
   const [usersDB, setUsersDB] = useState([]);
   const [items, setItems] = useState([]);
-  const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  const [showPublicReviews, setShowPublicReviews] = useState(false);
   
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -62,9 +58,6 @@ export default function App() {
     try {
       const { data: usersData } = await supabase.from('users').select('*');
       if (usersData) setUsersDB(usersData);
-
-      const { data: reqData } = await supabase.from('repair_requests').select('*');
-      if (reqData) setRequests(reqData);
 
       const { data: itemsData } = await supabase.from('items').select('*, history_logs(*)');
       if (itemsData) {
@@ -236,17 +229,8 @@ export default function App() {
         </button>
       </div>
 
-      {showPublicReviews ? (
-        <div className="p-4 md:p-8 max-w-6xl mx-auto w-full pt-20 md:pt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="mb-6 flex justify-start">
-             <button onClick={() => setShowPublicReviews(false)} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold bg-white/80 backdrop-blur-md border ${t.border} ${t.text} hover:bg-white shadow-sm transition-all`}>
-               &larr; Back to Login
-             </button>
-          </div>
-          <Reviews usersDB={usersDB} currentUser={null} userRole="guest" supabase={supabase} t={t} items={[]} />
-        </div>
-      ) : (!userRole || userRole === 'null') ? (
-        <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} addRequest={(req) => setRequests([...requests, req])} supabase={supabase} t={t} onViewReviews={() => setShowPublicReviews(true)} />
+      {(!userRole || userRole === 'null') ? (
+        <Auth usersDB={usersDB} setUsersDB={setUsersDB} setUserRole={setUserRole} setCurrentUser={setCurrentUser} supabase={supabase} t={t} />
       ) : (
         <div className="p-2 md:p-4 text-left w-full max-w-[1600px] mx-auto">
           
@@ -284,15 +268,16 @@ export default function App() {
             </div>
 
             <div className={`grid gap-2 w-full bg-white/50 p-1.5 rounded-xl relative z-30 border ${t.border} mt-6 ${
-              isAdmin ? 'grid-cols-2 md:grid-cols-4 lg:grid-cols-7' : 
-              isInternal ? 'grid-cols-2 lg:grid-cols-4' : 
-              'grid-cols-2'
+              isAdmin ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6' : 
+              isInternal ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-3' : 
+              'grid-cols-1'
             }`}>
               {isInternal ? (
                 <>
-                  {/* CHANGED PIPELINE VIEW TO KANBAN BOARD */}
                   <button onClick={() => setActiveTab('board')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><LayoutDashboard size={16} className="shrink-0" /> <span className="truncate">Kanban Board</span></button>
                   <button onClick={() => setActiveTab('history')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'history' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><History size={16} className="shrink-0" /> <span className="truncate">Audit Explorer</span></button>
+                  <button onClick={() => setActiveTab('inventory')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'inventory' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Box size={16} className="shrink-0" /> <span className="truncate">Inventory</span></button>
+                  
                   {isAdmin && (
                     <>
                       <button onClick={() => setActiveTab('clients')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'clients' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Users size={16} className="shrink-0" /> <span className="truncate">Client Directory</span></button>
@@ -300,15 +285,10 @@ export default function App() {
                       <button onClick={() => setActiveTab('statistics')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'statistics' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><PieChart size={16} className="shrink-0" /> <span className="truncate">Analytics</span></button>
                     </>
                   )}
-                  <button onClick={() => setActiveTab('requests')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'requests' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}>
-                    <Inbox size={16} className="shrink-0" /> <span className="truncate">Requests</span> 
-                    {requests.length > 0 && <span className={`shrink-0 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full`}>{requests.length}</span>}
-                  </button>
                 </>
               ) : (
                 <button onClick={() => setActiveTab('board')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'board' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Package size={16} className="shrink-0" /> <span className="truncate">My Repairs</span></button>
               )}
-              <button onClick={() => setActiveTab('reviews')} className={`w-full flex justify-center items-center gap-2 px-2 py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${activeTab === 'reviews' ? `${t.btn} text-white shadow-sm` : 'text-slate-600 hover:bg-black/5'}`}><Star size={16} className="shrink-0" /> <span className="truncate">Reviews</span></button>
             </div>
           </div>
 
@@ -405,21 +385,18 @@ export default function App() {
             </div>
           )}
 
-          {/* MAIN RENDER BLOCK */}
-          {activeTab === 'reviews' ? (
-            <Reviews usersDB={usersDB} currentUser={currentUser} userRole={userRole} supabase={supabase} t={t} items={items} />
-          ) : activeTab === 'statistics' && isAdmin ? (
-            <SummaryStatistics items={items} t={t} /> 
-          ) : !isInternal ? (
+          {!isInternal ? (
             <CustomerDashboard items={items} currentUser={currentUser} updateItemData={updateItemData} />
+          ) : activeTab === 'inventory' && isInternal ? (
+            <Inventory3D t={t} supabase={supabase} isAdmin={isAdmin} />
           ) : activeTab === 'history' ? (
             <HistoryLog items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} getClientName={getClientName} supabase={supabase} />
           ) : activeTab === 'clients' && isAdmin ? (
             <ClientManagement usersDB={usersDB} setUsersDB={setUsersDB} items={items} setItems={setItems} isAdmin={isAdmin} supabase={supabase} />
           ) : activeTab === 'engineers' && isAdmin ? (
             <EngineerManagement usersDB={usersDB} setUsersDB={setUsersDB} isAdmin={isAdmin} supabase={supabase} />
-          ) : activeTab === 'requests' ? (
-            <RequestsManagement requests={requests} setRequests={setRequests} items={items} setItems={setItems} usersDB={usersDB} setUsersDB={setUsersDB} supabase={supabase} />
+          ) : activeTab === 'statistics' && isAdmin ? (
+            <SummaryStatistics items={items} t={t} /> 
           ) : (
             <KanbanBoard items={items} setItems={setItems} isAdmin={isAdmin} isInternal={isInternal} startEdit={startEdit} deleteItem={deleteItem} getClientName={getClientName} updateItemData={updateItemData} supabase={supabase} currentUser={currentUser} usersDB={usersDB} />
           )}
