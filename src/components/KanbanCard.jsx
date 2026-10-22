@@ -73,7 +73,6 @@ export default function KanbanCard({
     setTimeout(() => { setPartData(null); setPartMsg({ text: '', type: '' }); }, 3000);
   };
 
-  // Helper to safely reset internal tool states when changing status
   const handleStatusChange = (newStatus) => {
     updateItemData(item.id, { repair_status: newStatus });
     setPartSearch('');
@@ -201,24 +200,27 @@ export default function KanbanCard({
 
             {/* IN PROGRESS: INVENTORY DEDUCTION SYSTEM */}
             {canStatus && (item.repair_status === 'In Progress' || !item.repair_status) && (
-              <div className="bg-white p-3.5 rounded-xl border border-slate-300 shadow-sm animate-in fade-in">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2 flex items-center gap-1.5"><Wrench size={12}/> Request Spare Part</span>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Search size={12} className="absolute left-2.5 top-2.5 text-slate-400" />
-                    <input type="text" placeholder="Part No..." value={partSearch} onChange={(e) => setPartSearch(e.target.value)} className="w-full text-xs pl-7 pr-2 py-2 border border-slate-300 bg-slate-50 rounded-lg focus:ring-2 outline-none" />
+              <div className="bg-white p-4 rounded-xl border border-slate-300 shadow-sm animate-in fade-in">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-3 flex items-center gap-1.5"><Wrench size={12}/> Request Spare Part</span>
+                
+                <div className="flex flex-col gap-2">
+                  <div className="relative w-full">
+                    <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                    <input type="text" placeholder="Enter Part No..." value={partSearch} onChange={(e) => setPartSearch(e.target.value)} className="w-full text-sm pl-9 pr-3 py-2 border border-slate-300 bg-slate-50 rounded-lg focus:ring-2 focus:ring-slate-500/20 outline-none transition-all" />
                   </div>
-                  <button onClick={checkPart} className="bg-slate-800 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-slate-900 transition-colors">Check</button>
+                  <button onClick={checkPart} disabled={!partSearch.trim()} className="w-full bg-slate-800 disabled:bg-slate-400 text-white px-3 py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-900 transition-colors flex justify-center items-center gap-2">
+                    <Search size={14} /> Check Inventory
+                  </button>
                 </div>
                 
                 {partMsg.text && (
-                  <p className={`text-[10px] font-bold mt-2.5 ${partMsg.type === 'error' ? 'text-red-500' : partMsg.type === 'success' ? 'text-emerald-600' : 'text-slate-500'}`}>{partMsg.text}</p>
+                  <p className={`text-xs font-bold mt-3 text-center ${partMsg.type === 'error' ? 'text-red-500' : partMsg.type === 'success' ? 'text-emerald-600' : 'text-slate-500'}`}>{partMsg.text}</p>
                 )}
 
                 {partData && partData.quantity > 0 && (
-                  <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-100">
-                    <input type="number" min="1" max={partData.quantity} value={qtyNeeded} onChange={(e) => setQtyNeeded(parseInt(e.target.value))} className="w-16 text-xs p-2 border border-slate-300 bg-slate-50 rounded-lg outline-none font-bold" />
-                    <button onClick={consumePart} className="flex-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border border-emerald-300 px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"><PackageMinus size={14}/> Deduct Inventory</button>
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+                    <input type="number" min="1" max={partData.quantity} value={qtyNeeded} onChange={(e) => setQtyNeeded(parseInt(e.target.value))} className="w-16 text-sm p-2 border border-slate-300 bg-slate-50 rounded-lg outline-none font-bold text-center" />
+                    <button onClick={consumePart} className="flex-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border border-emerald-300 px-3 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 transition-colors"><PackageMinus size={16}/> Deduct Part</button>
                   </div>
                 )}
               </div>
@@ -226,18 +228,21 @@ export default function KanbanCard({
 
             {/* WAITING FOR SPARE PART: CHECK AVAILABILITY SYSTEM */}
             {canStatus && item.repair_status === 'Waiting for spare part' && (
-              <div className="bg-white p-3.5 rounded-xl border border-slate-300 shadow-sm animate-in fade-in">
-                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block mb-2 flex items-center gap-1.5"><Search size={12}/> Check Part Availability</span>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Search size={12} className="absolute left-2.5 top-2.5 text-slate-400" />
-                    <input type="text" placeholder="Part No..." value={partSearch} onChange={(e) => setPartSearch(e.target.value)} className="w-full text-xs pl-7 pr-2 py-2 border border-amber-200 bg-amber-50/50 rounded-lg focus:ring-2 focus:ring-amber-500/20 outline-none" />
+              <div className="bg-white p-4 rounded-xl border border-slate-300 shadow-sm animate-in fade-in">
+                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block mb-3 flex items-center gap-1.5"><Search size={12}/> Check Part Availability</span>
+                
+                <div className="flex flex-col gap-2">
+                  <div className="relative w-full">
+                    <Search size={14} className="absolute left-3 top-2.5 text-amber-400/70" />
+                    <input type="text" placeholder="Enter Part No..." value={partSearch} onChange={(e) => setPartSearch(e.target.value)} className="w-full text-sm pl-9 pr-3 py-2 border border-amber-200 bg-amber-50/50 rounded-lg focus:ring-2 focus:ring-amber-500/20 outline-none transition-all placeholder:text-amber-700/40" />
                   </div>
-                  <button onClick={checkPart} className="bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition-colors">Check Status</button>
+                  <button onClick={checkPart} disabled={!partSearch.trim()} className="w-full bg-amber-100 disabled:opacity-50 hover:bg-amber-200 text-amber-800 border border-amber-300 px-3 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors flex justify-center items-center gap-2">
+                    <Search size={14} /> Check Status
+                  </button>
                 </div>
                 
                 {partMsg.text && (
-                  <p className={`text-[10px] font-bold mt-2.5 ${partMsg.type === 'error' ? 'text-red-500' : partMsg.type === 'success' ? 'text-emerald-600' : 'text-slate-500'}`}>{partMsg.text}</p>
+                  <p className={`text-xs font-bold mt-3 text-center ${partMsg.type === 'error' ? 'text-red-500' : partMsg.type === 'success' ? 'text-emerald-600' : 'text-slate-500'}`}>{partMsg.text}</p>
                 )}
               </div>
             )}
